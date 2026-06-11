@@ -6,7 +6,7 @@ I am a Computer Science Engineering undergraduate specializing in **Artificial I
 
 ### 🛠️ What I'm Working On
 
-*   **TrustGuard AI** – A digital forensics suite built with React and Firebase designed to detect AI-generated media (Deepfakes) and analyze metadata manipulation.
+*   **TrustGuard** – A digital forensics suite built with React and Firebase designed to detect AI-generated media (Deepfakes) and analyze metadata manipulation.
 *   **Movie Hunt** – A sleek web application for movie searching, tracking streaming availability, and aggregating IMDb data.
 
 ---
