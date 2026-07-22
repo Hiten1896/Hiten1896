@@ -1,4 +1,5 @@
-# Hi there, I'm Hiten Sharma 👋
+# Hi there, 
+I'm Hiten Sharma 👋
 
 I am a Computer Science Engineering undergraduate specializing in **Artificial Intelligence & Machine Learning (AIML)**. I focus on building responsive web applications. Leveraging AI-assisted development to solve modern data integrity and security challenges.
 
