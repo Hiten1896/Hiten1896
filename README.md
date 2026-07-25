@@ -23,8 +23,13 @@ I am a Computer Science Engineering undergraduate specializing in **Artificial I
 
 ### 📊 GitHub Stats
 
-![Hiten's GitHub Stats](https://github-readme-stats.vercel.app/api?username=Hiten1896&show_icons=true&theme=radical&cache=false)
-![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=Hiten1896&layout=compact&theme=radical&cache=false)
+<p align="left">
+  <img src="https://github-readme-streak-stats.herokuapp.com/?user=Hiten1896&theme=radical" alt="GitHub Streak" />
+</p>
+
+<p align="left">
+  <img src="https://github-readme-activity-graph.vercel.app/graph?username=Hiten1896&theme=react-dark" alt="Activity Graph" />
+</p>
 
 ---
 
