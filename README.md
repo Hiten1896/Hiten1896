@@ -4,10 +4,10 @@ I am a Computer Science Engineering undergraduate specializing in **Artificial I
 
 ---
 
-### 🎨 ASCII Portrait
+### 🎨 Profile Logo
 
 <p align="center">
-  <img src="./ascii.svg" alt="ASCII Portrait" width="100%" />
+  <img src="./ascii.svg" alt="Profile Logo" width="100%" />
 </p>
 
 ---

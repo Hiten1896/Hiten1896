@@ -52,11 +52,17 @@ def generate_logo_portrait():
     # Build SVG content with smooth scaling & fade-in animation
     svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 {size} {size}" width="{size}" height="{size}">
   <defs>
-    <!-- Dark Mode Card Gradient Border -->
+    <!-- Animated Gradient Border -->
     <linearGradient id="border-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#58a6ff" />
-      <stop offset="50%" stop-color="#1f6feb" />
-      <stop offset="100%" stop-color="#a371f7" />
+      <stop offset="0%" stop-color="#58a6ff">
+        <animate attributeName="stop-color" values="#58a6ff;#a371f7;#f778ba;#58a6ff" dur="4s" repeatCount="indefinite" />
+      </stop>
+      <stop offset="50%" stop-color="#1f6feb">
+        <animate attributeName="stop-color" values="#1f6feb;#58a6ff;#a371f7;#1f6feb" dur="4s" repeatCount="indefinite" />
+      </stop>
+      <stop offset="100%" stop-color="#a371f7">
+        <animate attributeName="stop-color" values="#a371f7;#f778ba;#58a6ff;#a371f7" dur="4s" repeatCount="indefinite" />
+      </stop>
     </linearGradient>
 
     <!-- Avatar Image Clip Path (Rounded Square) -->
@@ -64,24 +70,14 @@ def generate_logo_portrait():
       <rect x="{pad}" y="{pad}" width="{avatar_size}" height="{avatar_size}" rx="20" ry="20" />
     </clipPath>
 
-    <!-- Glow Filter -->
-    <filter id="glow-effect" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="8" result="blur" />
+    <!-- Soft Glow Filter -->
+    <filter id="glow-effect" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
     </filter>
   </defs>
 
   <style>
-    @keyframes fadeInScale {{
-      0% {{
-        opacity: 0;
-        transform: scale(0.92);
-      }}
-      100% {{
-        opacity: 1;
-        transform: scale(1);
-      }}
-    }}
     .card-bg {{
       fill: #0d1117;
       rx: 24px;
@@ -90,13 +86,9 @@ def generate_logo_portrait():
     .card-border {{
       fill: none;
       stroke: url(#border-grad);
-      stroke-width: 2;
+      stroke-width: 2.5;
       rx: 24px;
       ry: 24px;
-    }}
-    .avatar-wrapper {{
-      transform-origin: center;
-      animation: fadeInScale 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }}
     .avatar-frame {{
       fill: #161b22;
@@ -109,12 +101,16 @@ def generate_logo_portrait():
 
   <!-- Container Card -->
   <rect class="card-bg" width="{size}" height="{size}" />
-  <rect class="card-border" width="{size-4}" height="{size-4}" x="2" y="2" />
+  <rect class="card-border" width="{size-4}" height="{size-4}" x="2" y="2">
+    <animate attributeName="stroke-width" values="2;3;2" dur="3s" repeatCount="indefinite" />
+  </rect>
 
-  <!-- Animated Avatar Group -->
-  <g class="avatar-wrapper">
-    <animate attributeName="opacity" values="0;1" begin="0s" dur="1.0s" fill="freeze" />
-    <animateTransform attributeName="transform" type="scale" values="0.94;1.0" begin="0s" dur="1.0s" additive="sum" fill="freeze" />
+  <!-- Animated Avatar Group — slow 3.5s entrance so users see it arrive -->
+  <g opacity="0">
+    <!-- Slow fade from invisible to fully visible -->
+    <animate attributeName="opacity" values="0;0;0.3;0.7;1" keyTimes="0;0.1;0.4;0.7;1" begin="0.3s" dur="3.5s" fill="freeze" />
+    <!-- Gentle scale-up from 85% to 100% -->
+    <animateTransform attributeName="transform" type="scale" values="0.85;0.97;1.0" keyTimes="0;0.7;1" begin="0.3s" dur="3.5s" fill="freeze" calcMode="spline" keySplines="0.33 1 0.68 1; 0.33 1 0.68 1" />
 
     <!-- Frame Background -->
     <rect class="avatar-frame" x="{pad-1}" y="{pad-1}" width="{avatar_size+2}" height="{avatar_size+2}" />
