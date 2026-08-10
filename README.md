@@ -4,6 +4,14 @@ I am a Computer Science Engineering undergraduate specializing in **Artificial I
 
 ---
 
+### 🎨 ASCII Portrait
+
+<p align="center">
+  <img src="./ascii.svg" alt="ASCII Portrait" width="100%" />
+</p>
+
+---
+
 ### 🛠️ What I'm Working On
 
 *   **TrustGuard** – A digital forensics suite built with React and Firebase designed to detect AI-generated media (Deepfakes) and analyze metadata manipulation.
@@ -21,14 +29,19 @@ I am a Computer Science Engineering undergraduate specializing in **Artificial I
 
 ---
 
-### 📊 GitHub Stats
+### 📊 Activity & Stats
 
-<p align="left">
-  <img src="https://github-readme-streak-stats.herokuapp.com/?user=Hiten1896&theme=radical" alt="GitHub Streak" />
+<p align="center">
+  <img src="./stats.svg" alt="GitHub Stats" width="49%" />
+  <img src="./langs.svg" alt="Top Languages" width="49%" />
 </p>
 
-<p align="left">
-  <img src="https://github-readme-activity-graph.vercel.app/graph?username=Hiten1896&theme=react-dark" alt="Activity Graph" />
+<p align="center">
+  <img src="./streak.svg" alt="Contribution Streak" width="100%" />
+</p>
+
+<p align="center">
+  <img src="./year.svg" alt="Contribution Graph" width="100%" />
 </p>
 
 ---
