@@ -155,7 +155,8 @@ def fetch_github_stats():
     """
 
     if not token:
-        print("GITHUB_TOKEN not found in environment. Generating structure with public REST / fallback stats...")
+        print("WARNING: No GITHUB_TOKEN/GH_TOKEN found in environment.")
+        print("WARNING: Falling back to FAKE placeholder stats (not your real GitHub data).")
         return generate_fallback_stats(username, from_dt, to_dt)
 
     payload = json.dumps({
@@ -181,11 +182,24 @@ def fetch_github_stats():
         with urllib.request.urlopen(req) as resp:
             res_data = json.loads(resp.read().decode("utf-8"))
             if "errors" in res_data:
-                print(f"GraphQL Errors: {res_data['errors']}")
+                print("ERROR: GitHub GraphQL API returned errors:")
+                for err in res_data["errors"]:
+                    print(f"  - {err.get('message', err)}")
+                print("WARNING: Falling back to FAKE placeholder stats (not your real GitHub data).")
+                return generate_fallback_stats(username, from_dt, to_dt)
+            if not res_data.get("data") or not res_data["data"].get("user"):
+                print(f"ERROR: GraphQL response missing user data. Full response: {res_data}")
+                print("WARNING: Falling back to FAKE placeholder stats (not your real GitHub data).")
                 return generate_fallback_stats(username, from_dt, to_dt)
             return parse_graphql_response(res_data["data"]["user"], from_dt, to_dt)
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="replace")
+        print(f"ERROR: GitHub API HTTP {e.code} ({e.reason}). Response body: {body}")
+        print("WARNING: Falling back to FAKE placeholder stats (not your real GitHub data).")
+        return generate_fallback_stats(username, from_dt, to_dt)
     except Exception as e:
-        print(f"Failed to fetch GraphQL stats ({e}). Using fallback generator...")
+        print(f"ERROR: Failed to fetch GraphQL stats: {e!r}")
+        print("WARNING: Falling back to FAKE placeholder stats (not your real GitHub data).")
         return generate_fallback_stats(username, from_dt, to_dt)
 
 def parse_graphql_response(user_data, from_dt, to_dt):
@@ -236,7 +250,8 @@ def parse_graphql_response(user_data, from_dt, to_dt):
         "languages": lang_map,
         "days": days_list,
         "from_dt": from_dt,
-        "to_dt": to_dt
+        "to_dt": to_dt,
+        "is_fallback": False
     }
 
 def generate_fallback_stats(username, from_dt, to_dt):
@@ -261,7 +276,7 @@ def generate_fallback_stats(username, from_dt, to_dt):
 
     return {
         "username": username,
-        "name": username,
+        "name": f"{username} (DEMO DATA - check Action logs)",
         "total_stars": 12,
         "total_forks": 4,
         "total_commits": 148,
@@ -278,8 +293,38 @@ def generate_fallback_stats(username, from_dt, to_dt):
         },
         "days": days_list,
         "from_dt": from_dt,
-        "to_dt": to_dt
+        "to_dt": to_dt,
+        "is_fallback": True
     }
+
+def calculate_rank(data):
+    """
+    Compute a rough rank from actual fetched stats instead of a hardcoded value.
+    This is a simple heuristic (not GitHub's official algorithm) so it's clearly
+    derived from your real numbers rather than a fixed 'A+ / TOP 15%' placeholder.
+    """
+    score = (
+        data["total_stars"] * 4
+        + data["total_commits"] * 0.5
+        + data["total_prs"] * 3
+        + data["total_issues"] * 2
+        + data["total_forks"] * 3
+    )
+
+    if score >= 400:
+        letter, pct = "S", "TOP 1%"
+    elif score >= 200:
+        letter, pct = "A+", "TOP 5%"
+    elif score >= 100:
+        letter, pct = "A", "TOP 15%"
+    elif score >= 50:
+        letter, pct = "B+", "TOP 30%"
+    elif score >= 20:
+        letter, pct = "B", "TOP 50%"
+    else:
+        letter, pct = "C", "KEEP GOING"
+
+    return letter, pct
 
 def calculate_streak(days_list):
     """Calculate current streak, longest streak, total active days."""
@@ -327,7 +372,8 @@ def calculate_streak(days_list):
 
 def generate_stats_svg(data):
     w, h = 480, 220
-    text_content = f"{data['name']} {data['username']} Stars Commits PRs Issues Repositories {data['total_stars']} {data['total_commits']} {data['total_prs']} {data['total_issues']} {data['total_repos']}"
+    rank_letter, rank_pct = calculate_rank(data)
+    text_content = f"{data['name']} {data['username']} Stars Commits PRs Issues Repositories RANK {rank_letter} {rank_pct} {data['total_stars']} {data['total_commits']} {data['total_prs']} {data['total_issues']} {data['total_repos']}"
     font_css = get_font_style_css(text_content)
 
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
@@ -389,8 +435,8 @@ def generate_stats_svg(data):
   <g transform="translate(320, 60)">
     <rect class="rank-bg" width="130" height="130" />
     <text x="65" y="32" class="rank-title">RANK</text>
-    <text x="65" y="78" class="rank-val">A+</text>
-    <text x="65" y="108" class="rank-title">TOP 15%</text>
+    <text x="65" y="78" class="rank-val">{rank_letter}</text>
+    <text x="65" y="108" class="rank-title">{rank_pct}</text>
   </g>
 </svg>"""
     return svg
@@ -537,16 +583,18 @@ def generate_year_svg(data):
     grid_x = 40
     grid_y = 45
 
-    # Group days into weeks (columns)
-    weeks = []
-    curr_week = []
-    for d in days:
-        curr_week.append(d)
-        if len(curr_week) == 7:
-            weeks.append(curr_week)
-            curr_week = []
-    if curr_week:
-        weeks.append(curr_week)
+    # Group days into weeks (columns), aligned to real weekdays like GitHub's
+    # calendar: column rows are always Sun(0)..Sat(6), so the first column is
+    # padded with blanks up to the first day's weekday, and the last column
+    # padded after the final day. Without this padding, days silently shift
+    # into the wrong row and month labels attach to the wrong column.
+    first_weekday = datetime.strptime(days[0]["date"], "%Y-%m-%d").isoweekday() % 7  # Sun=0..Sat=6
+
+    padded_days = [None] * first_weekday + days
+    while len(padded_days) % 7 != 0:
+        padded_days.append(None)
+
+    weeks = [padded_days[i:i + 7] for i in range(0, len(padded_days), 7)]
 
     rect_tags = []
     month_labels = []
@@ -555,6 +603,8 @@ def generate_year_svg(data):
     for w_idx, week in enumerate(weeks):
         x = grid_x + w_idx * (cell_size + cell_gap)
         for d_idx, day in enumerate(week):
+            if day is None:
+                continue
             y = grid_y + d_idx * (cell_size + cell_gap)
             c_count = day["count"]
 
@@ -575,10 +625,11 @@ def generate_year_svg(data):
                 f'<title>{c_count} contributions on {day["date"]}</title></rect>'
             )
 
-            # Month label positioning
+            # Month label positioning: label the first week-column in which a
+            # new month appears, using the topmost real day in that column.
             d_obj = datetime.strptime(day["date"], "%Y-%m-%d")
             m_name = d_obj.strftime("%b")
-            if m_name != last_month and d_idx == 0:
+            if m_name != last_month:
                 month_labels.append(f'<text x="{x}" y="{grid_y - 8}" font-size="10" fill="#8b949e">{m_name}</text>')
                 last_month = m_name
 
