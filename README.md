@@ -21,11 +21,11 @@ I am a Computer Science Engineering undergraduate specializing in **Artificial I
 
 ### 🧰 Tech Stack & Tools
 
-* **Languages:** JavaScript, Python, C++, SQL
+* **Languages:** JavaScript, Python, C, SQL
 * **Frontend & Backend:** React.js, Node.js, HTML5, CSS3
 * **Cloud & Database:** Firebase, Vercel
-* **AI & Terminal Tools:** Gemini, Claude, Antigravity CLI, Gemini CLI, TMDB API, Hugging Face
-* **IDEs & Platforms:** VS Code, Antigravity, Android studio, Unity
+* **AI & Terminal Tools:** Gemini, Claude,Gemini CLI,Antigravity CLI, TMDB API, Hugging Face Git/github
+* **IDEs & Platforms:** VS Code, Antigravity, Android studio
 
 ---
 
