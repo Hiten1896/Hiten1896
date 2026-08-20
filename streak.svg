@@ -32,8 +32,8 @@
   <g transform="translate(24, 55)">
     <rect class="card-bg" width="130" height="100" />
     <text x="65" y="28" class="label">Current Streak</text>
-    <text x="65" y="62" class="val-main">1 days</text>
-    <text x="65" y="85" class="range-txt">2026-08-19 - 2026-08-19</text>
+    <text x="65" y="62" class="val-main">2 days</text>
+    <text x="65" y="85" class="range-txt">2026-08-19 - 2026-08-20</text>
   </g>
 
   <!-- 2. Longest Streak -->
@@ -48,7 +48,7 @@
   <g transform="translate(324, 55)">
     <rect class="card-bg" width="132" height="100" />
     <text x="66" y="28" class="label">Total Active Days</text>
-    <text x="66" y="62" class="val-sec">17 days</text>
+    <text x="66" y="62" class="val-sec">18 days</text>
     <text x="66" y="85" class="range-txt">Out of 364 days</text>
   </g>
 </svg>
