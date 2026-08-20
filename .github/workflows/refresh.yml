@@ -3,7 +3,7 @@ name: refresh stats
 on:
   schedule:
     - cron: "30 22 * * *" # Runs at 22:30 UTC (4:00 AM IST)
-    workflow_dispatch:
+  workflow_dispatch:
 
 permissions:
   contents: write
