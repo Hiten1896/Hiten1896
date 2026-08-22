@@ -64,6 +64,8 @@ def fetch_github_stats():
     username = os.environ.get("GITHUB_REPOSITORY_OWNER") or os.environ.get("GITHUB_ACTOR") or "Hiten1896"
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
 
+    print(f"Fetching stats for user: {username} (Token provided: {bool(token)})")
+
     now_utc = datetime.now(timezone.utc)
     to_dt = now_utc.replace(hour=23, minute=59, second=59, microsecond=0)
     from_dt = (now_utc - timedelta(days=363)).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -107,6 +109,7 @@ def fetch_github_stats():
     """
 
     if not token:
+        print("Error: No GitHub token found in environment variables!")
         return generate_fallback_stats(username, from_dt, to_dt)
 
     payload = json.dumps({
@@ -124,9 +127,12 @@ def fetch_github_stats():
         with urllib.request.urlopen(req) as resp:
             res_data = json.loads(resp.read().decode("utf-8"))
             if "errors" in res_data or not res_data.get("data") or not res_data["data"].get("user"):
+                print("GraphQL Error Response:", res_data)
                 return generate_fallback_stats(username, from_dt, to_dt)
+            print("Successfully fetched live GitHub data!")
             return parse_graphql_response(res_data["data"]["user"], from_dt, to_dt)
-    except Exception:
+    except Exception as e:
+        print("API Request Exception:", e)
         return generate_fallback_stats(username, from_dt, to_dt)
 
 def parse_graphql_response(user_data, from_dt, to_dt):
@@ -168,6 +174,7 @@ def parse_graphql_response(user_data, from_dt, to_dt):
     }
 
 def generate_fallback_stats(username, from_dt, to_dt):
+    print("Using fallback dummy stats.")
     days_list, curr, total_c = [], from_dt, 0
     while curr <= to_dt:
         days_list.append({"date": curr.strftime("%Y-%m-%d"), "count": 2, "color": "#26a641", "weekday": curr.weekday()})
