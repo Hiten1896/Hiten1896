@@ -9,13 +9,13 @@
     body, text { font-family: 'JetBrains Mono', monospace; }
      .bg { fill: #0d1117; rx: 12px; } .border { fill: none; stroke: #30363d; stroke-width: 1.5; rx: 12px; } .title { font-size: 16px; font-weight: 700; fill: #58a6ff; } .label { font-size: 13px; fill: #8b949e; } .stat-val { font-size: 14px; font-weight: 700; fill: #c9d1d9; }</style>
   <rect class="bg" width="480" height="220" /><rect class="border" width="478" height="218" x="1" y="1" />
-  <g transform="translate(24, 34)"><text x="0" y="12" class="title">Hiten1896's GitHub Stats</text></g>
+  <g transform="translate(24, 34)"><text x="0" y="12" class="title">Hiten Sharma's GitHub Stats</text></g>
   <g transform="translate(24, 65)">
-    <text x="24" y="13" class="label">Total Stars:</text><text x="170" y="13" class="stat-val">12</text>
-    <text x="24" y="41" class="label">Total Commits:</text><text x="170" y="41" class="stat-val">148</text>
-    <text x="24" y="69" class="label">Total PRs:</text><text x="170" y="69" class="stat-val">18</text>
-    <text x="24" y="97" class="label">Total Issues:</text><text x="170" y="97" class="stat-val">6</text>
-    <text x="24" y="125" class="label">Public Repos:</text><text x="170" y="125" class="stat-val">14</text>
+    <text x="24" y="13" class="label">Total Stars:</text><text x="170" y="13" class="stat-val">10</text>
+    <text x="24" y="41" class="label">Total Commits:</text><text x="170" y="41" class="stat-val">156</text>
+    <text x="24" y="69" class="label">Total PRs:</text><text x="170" y="69" class="stat-val">9</text>
+    <text x="24" y="97" class="label">Total Issues:</text><text x="170" y="97" class="stat-val">1</text>
+    <text x="24" y="125" class="label">Public Repos:</text><text x="170" y="125" class="stat-val">6</text>
   </g>
   <g transform="translate(320, 60)">
     <rect fill="#161b22" stroke="#30363d" width="130" height="130" rx="8" />
