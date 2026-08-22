@@ -2,7 +2,7 @@ name: refresh stats
 
 on:
   schedule:
-    - cron: "30 22 * * *" # Runs at 22:30 UTC (4:00 AM IST)
+    - cron: "30 22 * * *" # Runs daily at 22:30 UTC (4:00 AM IST)
   workflow_dispatch:
 
 permissions:
@@ -22,19 +22,18 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pillow numpy opencv-python-headless rembg onnxruntime fonttools requests
+          pip install fonttools requests
 
       - name: Run Profile Generator Scripts
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           GH_LOGIN: ${{ github.repository_owner }}
         run: |
-         
           python scripts/generate_stats.py
-          
+
       - name: Commit and Push Changes
         run: |
-          FILES="ascii.svg stats.svg streak.svg langs.svg year.svg"
+          FILES="stats.svg streak.svg langs.svg year.svg"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add $FILES
