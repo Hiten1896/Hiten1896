@@ -23,7 +23,9 @@
 ## 👤 About Me
 
 <p align="left">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=30&duration=3000&pause=1000&color=9D4EDD&width=1100&height=140&multiline=true&repeat=false&lines=Hi%2C+I'm+Hiten+Sharma%2C+a+Computer+Science+Engineering+undergraduate;specializing+in+Artificial+Intelligence+%26+Machine+Learning+(B.Tech+CSE+-+AIML)." alt="About Me Paragraph Typing" />
+  <span style="font-size: 18px; line-height: 1.6;">
+    Hi, I'm <strong>Hiten Sharma</strong>, a Computer Science Engineering undergraduate specializing in Artificial Intelligence & Machine Learning (B.Tech CSE - AIML).
+  </span>
 </p>
 
 ---
