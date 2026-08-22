@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -36,12 +38,12 @@ jobs:
         with:
           github_user_name: ${{ github.repository_owner }}
           outputs: |
-            github-contribution-grid-snake-dark.svg?palette=github-dark
+            year.svg?palette=github-dark
 
       - name: Commit and Push Changes
         run: |
-          FILES="stats.svg streak.svg langs.svg year.svg github-contribution-grid-snake-dark.svg"
+          FILES="stats.svg streak.svg langs.svg year.svg"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add $FILES
-          git diff --quiet && git diff --staged --quiet || (git commit -m "stats: daily automated update" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "stats: daily automated update with snake" && git push)
