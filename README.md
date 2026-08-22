@@ -122,14 +122,6 @@ A sleek web application for movie searching, tracking streaming availability, an
 
 ---
 
-## 🏆 GitHub Trophies
-
-<p align="center">
-  <img src="./trophies.svg" alt="GitHub Trophies" width="100%" />
-</p>
-
----
-
 ### 📅 Contribution Activity & Snake
 
 <p align="center">

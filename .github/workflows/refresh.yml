@@ -40,7 +40,7 @@ jobs:
 
       - name: Commit and Push Changes
         run: |
-          FILES="stats.svg streak.svg langs.svg year.svg trophies.svg github-contribution-grid-snake-dark.svg"
+          FILES="stats.svg streak.svg langs.svg year.svg github-contribution-grid-snake-dark.svg"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add $FILES

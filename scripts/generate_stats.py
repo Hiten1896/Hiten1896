@@ -2,7 +2,7 @@
 """
 scripts/generate_stats.py
 Fetches GitHub profile stats using GraphQL API, subsets font, and generates:
-stats.svg, streak.svg, langs.svg, year.svg, and trophies.svg.
+stats.svg, streak.svg, langs.svg, and year.svg.
 """
 
 import os
@@ -264,26 +264,12 @@ def generate_year_svg(data):
   {"".join(rects)}
 </svg>"""
 
-def generate_trophies_svg(data):
-    w, h = 480, 160
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
-  <style>.bg {{ fill: #0d1117; rx: 12px; }} .border {{ fill: none; stroke: #30363d; stroke-width: 1.5; rx: 12px; }} .card {{ fill: #161b22; stroke: #30363d; rx: 8px; }}</style>
-  <rect class="bg" width="{w}" height="{h}" /><rect class="border" width="{w-2}" height="{h-2}" x="1" y="1" />
-  <g transform="translate(24, 32)"><text x="0" y="12" font-size="16" font-weight="700" fill="#ffd700">🏆 GitHub Trophies</text></g>
-  <g transform="translate(24, 55)">
-    <g><rect class="card" width="130" height="80"/><text x="65" y="25" font-size="11" fill="#8b949e" text-anchor="middle">Total Stars</text><text x="65" y="55" font-size="15" font-weight="700" fill="#c9d1d9" text-anchor="middle">{data['total_stars']}</text></g>
-    <g transform="translate(151, 0)"><rect class="card" width="130" height="80"/><text x="65" y="25" font-size="11" fill="#8b949e" text-anchor="middle">Commits</text><text x="65" y="55" font-size="15" font-weight="700" fill="#c9d1d9" text-anchor="middle">{data['total_commits']}</text></g>
-    <g transform="translate(302, 0)"><rect class="card" width="130" height="80"/><text x="65" y="25" font-size="11" fill="#8b949e" text-anchor="middle">Public Repos</text><text x="65" y="55" font-size="15" font-weight="700" fill="#c9d1d9" text-anchor="middle">{data['total_repos']}</text></g>
-  </g>
-</svg>"""
-
 def main():
     data = fetch_github_stats()
     with open("stats.svg", "w", encoding="utf-8") as f: f.write(generate_stats_svg(data))
     with open("streak.svg", "w", encoding="utf-8") as f: f.write(generate_streak_svg(data))
     with open("langs.svg", "w", encoding="utf-8") as f: f.write(generate_langs_svg(data))
     with open("year.svg", "w", encoding="utf-8") as f: f.write(generate_year_svg(data))
-    with open("trophies.svg", "w", encoding="utf-8") as f: f.write(generate_trophies_svg(data))
     print("All SVGs generated successfully!")
 
 if __name__ == "__main__":
