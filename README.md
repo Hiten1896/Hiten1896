@@ -128,8 +128,4 @@ A sleek web application for movie searching, tracking streaming availability, an
   <img src="./year.svg" alt="Contribution Graph" width="100%" />
 </p>
 
-<p align="center">
-  <img src="./github-contribution-grid-snake-dark.svg" alt="Contribution Snake" width="100%" />
-</p>
-
 ---
