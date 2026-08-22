@@ -42,8 +42,8 @@ jobs:
 
       - name: Commit and Push Changes
         run: |
-          FILES="stats.svg streak.svg langs.svg year.svg"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add $FILES
-          git diff --quiet && git diff --staged --quiet || (git commit -m "stats: daily automated update with snake and error logs" && git push)
+          git add stats.svg streak.svg langs.svg
+          git status
+          git diff --staged --quiet || (git commit -m "stats: daily automated update" && git push)
