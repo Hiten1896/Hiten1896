@@ -193,16 +193,58 @@ def calculate_rank(data):
     if score >= 100: return "A", "TOP 15%"
     return "B+", "TOP 30%"
 
+def format_date_str(date_str):
+    if not date_str:
+        return ""
+    try:
+        dt = datetime.strptime(date_str, "%Y-%m-%d")
+        return dt.strftime("%d-%m-%Y")
+    except Exception:
+        return date_str
+
 def calculate_streak(days_list):
     total_active = sum(1 for d in days_list if d["count"] > 0)
     max_streak, curr_streak = 0, 0
+    max_start, max_end = "", ""
+    curr_start, curr_end = "", ""
+    
+    temp_streak = 0
+    temp_start = ""
+    
     for d in days_list:
         if d["count"] > 0:
-            curr_streak += 1
-            if curr_streak > max_streak: max_streak = curr_streak
+            if temp_streak == 0:
+                temp_start = d["date"]
+            temp_streak += 1
+            curr_streak = temp_streak
+            curr_start = temp_start
+            curr_end = d["date"]
+            
+            if curr_streak > max_streak:
+                max_streak = curr_streak
+                max_start = curr_start
+                max_end = curr_end
         else:
+            temp_streak = 0
             curr_streak = 0
-    return {"current_streak": curr_streak, "longest_streak": max_streak, "total_active": total_active}
+            curr_start = ""
+            curr_end = ""
+            
+    # Fallback if no active streak found
+    if not curr_start and days_list:
+        curr_start = days_list[-1]["date"]
+        curr_end = days_list[-1]["date"]
+    if not max_start and days_list:
+        max_start = days_list[0]["date"]
+        max_end = days_list[0]["date"]
+
+    return {
+        "current_streak": curr_streak, 
+        "longest_streak": max_streak, 
+        "total_active": total_active,
+        "curr_range": f"{format_date_str(curr_start)} To {format_date_str(curr_end)}",
+        "long_range": f"{format_date_str(max_start)} To {format_date_str(max_end)}"
+    }
 
 def generate_stats_svg(data):
     w, h = 480, 220
@@ -234,8 +276,8 @@ def generate_streak_svg(data):
   <style>.bg {{ fill: #0d1117; rx: 12px; }} .border {{ fill: none; stroke: #30363d; stroke-width: 1.5; rx: 12px; }} .card {{ fill: #161b22; stroke: #30363d; rx: 8px; }}</style>
   <rect class="bg" width="{w}" height="{h}" /><rect class="border" width="{w-2}" height="{h-2}" x="1" y="1" />
   <g transform="translate(24, 30)"><text x="0" y="14" font-size="16" font-weight="700" fill="#f0883e">Contribution Streak</text></g>
-  <g transform="translate(24, 55)"><rect class="card" width="130" height="100"/><text x="65" y="30" font-size="12" fill="#8b949e" text-anchor="middle">Current Streak</text><text x="65" y="65" font-size="24" font-weight="700" fill="#f0883e" text-anchor="middle">{s['current_streak']}d</text></g>
-  <g transform="translate(174, 55)"><rect class="card" width="130" height="100"/><text x="65" y="30" font-size="12" fill="#8b949e" text-anchor="middle">Longest Streak</text><text x="65" y="65" font-size="24" font-weight="700" fill="#c9d1d9" text-anchor="middle">{s['longest_streak']}d</text></g>
+  <g transform="translate(24, 55)"><rect class="card" width="130" height="100"/><text x="65" y="26" font-size="12" fill="#8b949e" text-anchor="middle">Current Streak</text><text x="65" y="58" font-size="22" font-weight="700" fill="#f0883e" text-anchor="middle">{s['current_streak']}d</text><text x="65" y="82" font-size="8.5" fill="#8b949e" text-anchor="middle">{s['curr_range']}</text></g>
+  <g transform="translate(174, 55)"><rect class="card" width="130" height="100"/><text x="65" y="26" font-size="12" fill="#8b949e" text-anchor="middle">Longest Streak</text><text x="65" y="58" font-size="22" font-weight="700" fill="#c9d1d9" text-anchor="middle">{s['longest_streak']}d</text><text x="65" y="82" font-size="8.5" fill="#8b949e" text-anchor="middle">{s['long_range']}</text></g>
   <g transform="translate(324, 55)"><rect class="card" width="132" height="100"/><text x="66" y="30" font-size="12" fill="#8b949e" text-anchor="middle">Active Days</text><text x="66" y="65" font-size="24" font-weight="700" fill="#c9d1d9" text-anchor="middle">{s['total_active']}</text></g>
 </svg>"""
 
