@@ -1,8 +1,8 @@
-name: refresh stats
+name: refresh stats & snake
 
 on:
   schedule:
-    - cron: "30 22 * * *" # Runs daily at 22:30 UTC (4:00 AM IST)
+    - cron: "30 22 * * *" # Runs daily at 22:30 UTC
   workflow_dispatch:
 
 permissions:
@@ -31,9 +31,16 @@ jobs:
         run: |
           python scripts/generate_stats.py
 
+      - name: Generate Contribution Grid Snake
+        uses: Platane/snk/svg-only@v3
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          outputs: |
+            github-contribution-grid-snake-dark.svg?palette=github-dark
+
       - name: Commit and Push Changes
         run: |
-          FILES="stats.svg streak.svg langs.svg year.svg"
+          FILES="stats.svg streak.svg langs.svg year.svg trophies.svg github-contribution-grid-snake-dark.svg"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add $FILES
