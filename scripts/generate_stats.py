@@ -176,9 +176,14 @@ def parse_graphql_response(user_data, from_dt, to_dt):
 def generate_fallback_stats(username, from_dt, to_dt):
     print("Using fallback dummy stats.")
     days_list, curr, total_c = [], from_dt, 0
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    yesterday_str = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
     while curr <= to_dt:
-        days_list.append({"date": curr.strftime("%Y-%m-%d"), "count": 2, "color": "#26a641", "weekday": curr.weekday()})
-        total_c += 2
+        d_str = curr.strftime("%Y-%m-%d")
+        # Give a couple of recent active days so dates show up even on fallback
+        c_val = 2 if d_str in [today_str, yesterday_str] else (1 if curr.weekday() < 5 else 0)
+        days_list.append({"date": d_str, "count": c_val, "color": "#26a641" if c_val > 0 else "#161b22", "weekday": curr.weekday()})
+        total_c += c_val
         curr += timedelta(days=1)
     return {
         "username": username, "name": username, "total_stars": 12, "total_forks": 4,
@@ -220,7 +225,7 @@ def calculate_streak(days_list):
             curr_start = temp_start
             curr_end = d["date"]
             
-            if curr_streak > max_streak:
+            if curr_streak >= max_streak:
                 max_streak = curr_streak
                 max_start = curr_start
                 max_end = curr_end
@@ -230,7 +235,7 @@ def calculate_streak(days_list):
             curr_start = ""
             curr_end = ""
             
-    # Fallback if no active streak found
+    # Fallback bounds if streaks are empty
     if not curr_start and days_list:
         curr_start = days_list[-1]["date"]
         curr_end = days_list[-1]["date"]
