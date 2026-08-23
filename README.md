@@ -124,7 +124,7 @@ A sleek web application for movie searching, tracking streaming availability, an
 
 ---
 
-###🗓 Contribution Activity 
+### 🗓 Contribution Activity 
 
 <p align="center">
   <img src="./year.svg" alt="Contribution Graph" width="100%" />
