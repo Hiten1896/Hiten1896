@@ -374,7 +374,7 @@ def editor_chrome(w, h, tab_label, accent):
 # Card 1: Stats overview
 # ---------------------------------------------------------------------------
 def generate_stats_svg(data):
-    w, h = 496, 250
+    w, h = 496, 340
     rank_letter, rank_pct, score = calculate_rank(data)
     font_css = get_font_style_css(data['name'] + rank_letter + rank_pct)
 
@@ -387,39 +387,72 @@ def generate_stats_svg(data):
         ("Repositories",  data["total_repos"],   "#38bdf8"),
     ]
 
-    rows = []
-    col_w = 158
+    # Right-hand info column reserved for the rank ring; metrics use the
+    # remaining width as a single, generously spaced 3-row x 2-col grid.
+    grid_left = 28
+    grid_right = w - 168   # leaves room for the rank card on the right
+    col_gap = 18
+    col_w = (grid_right - grid_left - col_gap) / 2
+    row_h = 62
+    grid_top = 96
+
+    cells = []
     for i, (label, val, color) in enumerate(metrics):
         col = i % 2
         row = i // 2
-        x = 28 + col * col_w
-        y = 78 + row * 38
-        rows.append(f"""
-    <circle cx="{x}" cy="{y - 4}" r="3" fill="{color}" />
-    <text x="{x + 12}" y="{y}" font-size="11.5" fill="{MUTED}">{label}</text>
-    <text x="{x + col_w - 22}" y="{y}" font-size="13" font-weight="700" fill="{TEXT}" text-anchor="end">{val}</text>""")
+        x = grid_left + col * (col_w + col_gap)
+        y = grid_top + row * row_h
+
+        cells.append(f"""
+    <rect x="{x:.1f}" y="{y:.1f}" width="{col_w:.1f}" height="{row_h - 14:.1f}" rx="10" fill="{BG}" stroke="{BORDER}" stroke-width="1" />
+    <rect x="{x:.1f}" y="{y:.1f}" width="3" height="{row_h - 14:.1f}" rx="1.5" fill="{color}" />
+    <text x="{x + 16:.1f}" y="{y + 20:.1f}" font-size="10" letter-spacing="0.5" fill="{MUTED}">{label.upper()}</text>
+    <text x="{x + 16:.1f}" y="{y + 39:.1f}" font-size="19" font-weight="700" fill="{TEXT}">{val}</text>""")
+
+    grid_bottom = grid_top + 3 * row_h - 14
 
     score_pct = max(0, min(100, round(score)))
-    ring_r = 34
+    ring_r = 40
     circumference = 2 * 3.14159265 * ring_r
     offset = circumference * (1 - score_pct / 100)
+    ring_cx = w - 90
+    ring_cy = grid_top + 58
+
+    footer_y = h - 26
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
   <style>{font_css}</style>
   {editor_chrome(w, h, f"~/{data['username']}/stats.json", CYAN)}
-  <text x="28" y="58" font-size="15" font-weight="700" fill="{TEXT}">{data['name']}</text>
-  <text x="{w - 28}" y="58" font-size="11" fill="{MUTED}" text-anchor="end">@{data['username']} - {data.get('account_age_years', 0)}y on GitHub</text>
-  {"".join(rows)}
-  <g transform="translate({w - 68}, 148)">
-    <circle cx="0" cy="0" r="{ring_r}" fill="none" stroke="{BORDER}" stroke-width="7" />
-    <circle cx="0" cy="0" r="{ring_r}" fill="none" stroke="{CYAN}" stroke-width="7"
+
+  <text x="28" y="56" font-size="17" font-weight="700" fill="{TEXT}">{data['name']}</text>
+  <text x="28" y="76" font-size="11.5" fill="{MUTED}">@{data['username']} &#183; {data.get('account_age_years', 0)}y on GitHub</text>
+
+  {"".join(cells)}
+
+  <g transform="translate({ring_cx}, {ring_cy})">
+    <text x="0" y="-56" font-size="10" letter-spacing="0.5" fill="{MUTED}" text-anchor="middle">RANK</text>
+    <circle cx="0" cy="0" r="{ring_r}" fill="none" stroke="{BORDER}" stroke-width="8" />
+    <circle cx="0" cy="0" r="{ring_r}" fill="none" stroke="{CYAN}" stroke-width="8"
       stroke-linecap="round" stroke-dasharray="{circumference:.2f}" stroke-dashoffset="{offset:.2f}"
       transform="rotate(-90)" />
-    <text x="0" y="6" font-size="20" font-weight="700" fill="{TEXT}" text-anchor="middle">{rank_letter}</text>
+    <text x="0" y="8" font-size="24" font-weight="700" fill="{TEXT}" text-anchor="middle">{rank_letter}</text>
+    <text x="0" y="66" font-size="10.5" fill="{MUTED}" text-anchor="middle">{rank_pct}</text>
   </g>
-  <text x="{w - 68}" y="198" font-size="9.5" fill="{MUTED}" text-anchor="middle">{rank_pct}</text>
-  <line x1="28" y1="220" x2="{w - 28}" y2="220" stroke="{BORDER}" stroke-width="1" />
-  <text x="28" y="240" font-size="10" fill="{MUTED}">{data.get('followers', 0)} followers - {data.get('total_private', 0)} private contributions this year</text>
+
+  <line x1="28" y1="{grid_bottom + 24:.1f}" x2="{w - 28}" y2="{grid_bottom + 24:.1f}" stroke="{BORDER}" stroke-width="1" />
+
+  <g transform="translate(28, {footer_y})">
+    <text x="0" y="0" font-size="10" fill="{MUTED}">FOLLOWERS</text>
+    <text x="0" y="18" font-size="15" font-weight="700" fill="{TEXT}">{data.get('followers', 0)}</text>
+  </g>
+  <g transform="translate(180, {footer_y})">
+    <text x="0" y="0" font-size="10" fill="{MUTED}">PRIVATE CONTRIBUTIONS</text>
+    <text x="0" y="18" font-size="15" font-weight="700" fill="{TEXT}">{data.get('total_private', 0)}</text>
+  </g>
+  <g transform="translate(360, {footer_y})">
+    <text x="0" y="0" font-size="10" fill="{MUTED}">TOTAL CONTRIBUTIONS</text>
+    <text x="0" y="18" font-size="15" font-weight="700" fill="{TEXT}">{data.get('total_conts', 0)}</text>
+  </g>
 </svg>"""
 
 
