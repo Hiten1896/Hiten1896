@@ -355,7 +355,7 @@ def calculate_streak(days_list):
 # Shared SVG chrome -- "editor pane" signature element
 # ---------------------------------------------------------------------------
 def editor_chrome(w, h, tab_label, accent):
-    """Top tab bar mimicking a minimal code editor window."""
+    """Top tab bar mimicking a minimal code editor window (no filename text)."""
     return f"""
   <rect x="0" y="0" width="{w}" height="{h}" rx="14" fill="{PANEL}" />
   <rect x="0.75" y="0.75" width="{w - 1.5}" height="{h - 1.5}" rx="13.25" fill="none" stroke="{BORDER}" stroke-width="1.5" />
@@ -365,7 +365,6 @@ def editor_chrome(w, h, tab_label, accent):
   <circle cx="20" cy="17" r="5" fill="{RED}" opacity="0.85" />
   <circle cx="37" cy="17" r="5" fill="{AMBER}" opacity="0.85" />
   <circle cx="54" cy="17" r="5" fill="{GREEN}" opacity="0.85" />
-  <text x="{w/2}" y="21.5" font-size="11.5" fill="{MUTED}" text-anchor="middle">{tab_label}</text>
   <rect x="{w - 34}" y="10" width="20" height="14" rx="3" fill="none" stroke="{accent}" stroke-width="1.2" opacity="0.6" />
 """
 
@@ -426,9 +425,9 @@ def generate_stats_svg(data):
   {editor_chrome(w, h, f"~/{data['username']}/stats.json", CYAN)}
 
   <!-- Hero band: identity on the left, rank ring as the visual anchor on the right -->
-  <text x="28" y="66" font-size="22" font-weight="700" fill="{TEXT}">{data['name']}</text>
-  <text x="28" y="88" font-size="12" fill="{MUTED}">@{data['username']}</text>
-  <text x="28" y="112" font-size="11" fill="{MUTED}">{data.get('account_age_years', 0)} years on GitHub &#183; {data.get('total_conts', 0)} contributions this year</text>
+  <text x="28" y="70" font-size="24" font-weight="700" fill="{TEXT}">{data['name']}</text>
+  <text x="28" y="94" font-size="12.5" fill="{MUTED}">{data['username']}</text>
+  <text x="28" y="118" font-size="18" font-weight="700" fill="{CYAN}">{data.get('total_conts', 0)}<tspan font-size="10.5" font-weight="400" fill="{MUTED}"> contributions &#183; {data.get('account_age_years', 0)}y</tspan></text>
 
   <g transform="translate({ring_cx}, {ring_cy})">
     <circle cx="0" cy="0" r="{ring_r}" fill="none" stroke="{BORDER}" stroke-width="7" />
@@ -446,8 +445,8 @@ def generate_stats_svg(data):
   {"".join(dividers)}
 
   <line x1="28" y1="{footer_y - 18}" x2="{w - 28}" y2="{footer_y - 18}" stroke="{BORDER}" stroke-width="1" />
-  <text x="28" y="{footer_y}" font-size="10" fill="{MUTED}">{data.get('followers', 0)} followers</text>
-  <text x="{w - 28}" y="{footer_y}" font-size="10" fill="{MUTED}" text-anchor="end">{data.get('total_private', 0)} private contributions this year</text>
+  <text x="28" y="{footer_y}" font-size="10.5" fill="{MUTED}">&#9679; {data.get('followers', 0)} followers</text>
+  <text x="{w - 28}" y="{footer_y}" font-size="10.5" fill="{MUTED}" text-anchor="end">{data.get('total_private', 0)} private &#9679;</text>
 </svg>"""
 
 
@@ -509,32 +508,32 @@ def generate_streak_svg(data):
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
   <style>{font_css}</style>
-  {editor_chrome(w, h, f"~/{data['username']}/streak.log", GREEN)}
-  <text x="28" y="54" font-size="11.5" fill="{MUTED}">contributions.map(day =&gt; day.count)</text>
-  <g transform="translate(28, 62) scale({scale:.3f})">
+  {editor_chrome(w, h, "", GREEN)}
+  <g transform="translate(28, 50) scale({scale:.3f})">
     {heatmap_svg}
   </g>
-  <g transform="translate(0, 128)">
+  <g transform="translate(0, 116)">
     <text x="28" y="0" font-size="9.5" fill="{MUTED}">less</text>
     {legend_cells}
     <text x="{legend_x + 5*13 + 8}" y="8" font-size="9.5" fill="{MUTED}">more</text>
   </g>
-  <g transform="translate(28, 164)">
+  <line x1="28" y1="132" x2="{w - 28}" y2="132" stroke="{BORDER}" stroke-width="1" />
+  <g transform="translate(28, 168)">
     <text x="0" y="0" font-size="10" fill="{MUTED}">CURRENT STREAK</text>
     <text x="0" y="23" font-size="20" font-weight="700" fill="{GREEN}">{s['current_streak']}<tspan font-size="11" fill="{MUTED}"> days</tspan></text>
     <text x="0" y="39" font-size="8.5" fill="{MUTED}">{s['curr_range']}</text>
   </g>
-  <g transform="translate(180, 164)">
+  <g transform="translate(180, 168)">
     <text x="0" y="0" font-size="10" fill="{MUTED}">LONGEST STREAK</text>
     <text x="0" y="23" font-size="20" font-weight="700" fill="{TEXT}">{s['longest_streak']}<tspan font-size="11" fill="{MUTED}"> days</tspan></text>
     <text x="0" y="39" font-size="8.5" fill="{MUTED}">{s['long_range']}</text>
   </g>
-  <g transform="translate(360, 164)">
+  <g transform="translate(360, 168)">
     <text x="0" y="0" font-size="10" fill="{MUTED}">BEST DAY</text>
     <text x="0" y="23" font-size="20" font-weight="700" fill="{VIOLET}">{s['best_day_count']}</text>
     <text x="0" y="39" font-size="8.5" fill="{MUTED}">{s['best_day_date'] or '-'}</text>
   </g>
-  <text x="28" y="{h - 14}" font-size="9" fill="{MUTED}">{s['total_active']} active days - avg {s['avg_per_active_day']}/day when active</text>
+  <text x="28" y="{h - 14}" font-size="9" fill="{MUTED}">{s['total_active']} active days &#183; avg {s['avg_per_active_day']}/day</text>
 </svg>"""
 
 
@@ -547,7 +546,7 @@ def generate_langs_svg(data):
     total = sum(i["size"] for _, i in langs) or 1
     font_css = get_font_style_css("langs" + "".join(n for n, _ in langs))
 
-    bar_x, bar_y, bar_w = 28, 56, w - 56
+    bar_x, bar_y, bar_w = 28, 48, w - 56
     rects, curr_x = [], bar_x
     legend = []
     for idx, (name, info) in enumerate(langs):
@@ -558,7 +557,7 @@ def generate_langs_svg(data):
         col = idx % 2
         row = idx // 2
         lx = 28 + col * 235
-        ly = 92 + row * 22
+        ly = 84 + row * 22
         legend.append(
             f'<rect x="{lx}" y="{ly - 9}" width="8" height="8" rx="2" fill="{info["color"]}" />'
             f'<text x="{lx + 14}" y="{ly}" font-size="11.5" fill="{TEXT}">{name}</text>'
@@ -567,7 +566,7 @@ def generate_langs_svg(data):
 
     top_repos = data.get("top_repos", [])[:3]
     repo_rows = []
-    ry = 222
+    ry = 214
     for r in top_repos:
         lang = (r.get("primaryLanguage") or {}) or {}
         lname = lang.get("name", "-")
@@ -581,14 +580,13 @@ def generate_langs_svg(data):
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
   <style>{font_css}</style>
-  {editor_chrome(w, h, f"~/{data['username']}/languages.yml", VIOLET)}
-  <text x="28" y="50" font-size="12.5" fill="{MUTED}">top languages by bytes written</text>
+  {editor_chrome(w, h, "", VIOLET)}
   <rect x="{bar_x}" y="{bar_y}" width="{bar_w}" height="10" rx="5" fill="{BORDER}" />
   <clipPath id="barclip"><rect x="{bar_x}" y="{bar_y}" width="{bar_w}" height="10" rx="5" /></clipPath>
   <g clip-path="url(#barclip)">{"".join(rects)}</g>
   {"".join(legend)}
-  <line x1="28" y1="182" x2="{w - 28}" y2="182" stroke="{BORDER}" stroke-width="1" />
-  <text x="28" y="200" font-size="10" fill="{MUTED}">TOP REPOSITORIES</text>
+  <line x1="28" y1="176" x2="{w - 28}" y2="176" stroke="{BORDER}" stroke-width="1" />
+  <text x="28" y="194" font-size="10" fill="{MUTED}" letter-spacing="0.4">&#9733; PINNED</text>
   {"".join(repo_rows)}
 </svg>"""
 
