@@ -374,85 +374,80 @@ def editor_chrome(w, h, tab_label, accent):
 # Card 1: Stats overview
 # ---------------------------------------------------------------------------
 def generate_stats_svg(data):
-    w, h = 496, 340
+    w, h = 496, 300
     rank_letter, rank_pct, score = calculate_rank(data)
     font_css = get_font_style_css(data['name'] + rank_letter + rank_pct)
 
-    metrics = [
-        ("Stars",         data["total_stars"],  CYAN),
-        ("Commits (yr)",  data["total_commits"], GREEN),
-        ("Pull Requests", data["total_prs"],     VIOLET),
-        ("Reviews",       data.get("total_reviews", 0), AMBER),
-        ("Issues",        data["total_issues"],  "#f472b6"),
-        ("Repositories",  data["total_repos"],   "#38bdf8"),
-    ]
-
-    # Right-hand info column reserved for the rank ring; metrics use the
-    # remaining width as a single, generously spaced 3-row x 2-col grid.
-    grid_left = 28
-    grid_right = w - 168   # leaves room for the rank card on the right
-    col_gap = 18
-    col_w = (grid_right - grid_left - col_gap) / 2
-    row_h = 62
-    grid_top = 96
-
-    cells = []
-    for i, (label, val, color) in enumerate(metrics):
-        col = i % 2
-        row = i // 2
-        x = grid_left + col * (col_w + col_gap)
-        y = grid_top + row * row_h
-
-        cells.append(f"""
-    <rect x="{x:.1f}" y="{y:.1f}" width="{col_w:.1f}" height="{row_h - 14:.1f}" rx="10" fill="{BG}" stroke="{BORDER}" stroke-width="1" />
-    <rect x="{x:.1f}" y="{y:.1f}" width="3" height="{row_h - 14:.1f}" rx="1.5" fill="{color}" />
-    <text x="{x + 16:.1f}" y="{y + 20:.1f}" font-size="10" letter-spacing="0.5" fill="{MUTED}">{label.upper()}</text>
-    <text x="{x + 16:.1f}" y="{y + 39:.1f}" font-size="19" font-weight="700" fill="{TEXT}">{val}</text>""")
-
-    grid_bottom = grid_top + 3 * row_h - 14
-
+    # -----------------------------------------------------------------
+    # Layout: a hero "identity + rank" band at the top (the one thing
+    # you're meant to read first), then a single horizontal strip of
+    # secondary metrics as compact stat units underneath, separated by
+    # thin dividers rather than boxes. No competing grid of cards.
+    # -----------------------------------------------------------------
     score_pct = max(0, min(100, round(score)))
-    ring_r = 40
+    ring_r = 38
     circumference = 2 * 3.14159265 * ring_r
     offset = circumference * (1 - score_pct / 100)
-    ring_cx = w - 90
-    ring_cy = grid_top + 58
+    ring_cx, ring_cy = w - 76, 78
 
-    footer_y = h - 26
+    hero_bottom = 148
+
+    metrics = [
+        ("Stars",     data["total_stars"],  CYAN),
+        ("Commits",   data["total_commits"], GREEN),
+        ("PRs",       data["total_prs"],     VIOLET),
+        ("Reviews",   data.get("total_reviews", 0), AMBER),
+        ("Issues",    data["total_issues"],  "#f472b6"),
+        ("Repos",     data["total_repos"],   "#38bdf8"),
+    ]
+    strip_left, strip_right = 28, w - 28
+    n = len(metrics)
+    seg_w = (strip_right - strip_left) / n
+    strip_y = hero_bottom + 56
+
+    strip_cells = []
+    dividers = []
+    for i, (label, val, color) in enumerate(metrics):
+        cx = strip_left + seg_w * i + seg_w / 2
+        strip_cells.append(f"""
+    <rect x="{cx - 10:.1f}" y="{strip_y - 34:.1f}" width="20" height="3" rx="1.5" fill="{color}" />
+    <text x="{cx:.1f}" y="{strip_y - 12:.1f}" font-size="21" font-weight="700" fill="{TEXT}" text-anchor="middle">{val}</text>
+    <text x="{cx:.1f}" y="{strip_y + 6:.1f}" font-size="9.5" letter-spacing="0.4" fill="{MUTED}" text-anchor="middle">{label.upper()}</text>""")
+        if i > 0:
+            dx = strip_left + seg_w * i
+            dividers.append(
+                f'<line x1="{dx:.1f}" y1="{strip_y - 30:.1f}" x2="{dx:.1f}" y2="{strip_y + 10:.1f}" stroke="{BORDER}" stroke-width="1" />'
+            )
+
+    footer_y = h - 30
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
   <style>{font_css}</style>
   {editor_chrome(w, h, f"~/{data['username']}/stats.json", CYAN)}
 
-  <text x="28" y="56" font-size="17" font-weight="700" fill="{TEXT}">{data['name']}</text>
-  <text x="28" y="76" font-size="11.5" fill="{MUTED}">@{data['username']} &#183; {data.get('account_age_years', 0)}y on GitHub</text>
-
-  {"".join(cells)}
+  <!-- Hero band: identity on the left, rank ring as the visual anchor on the right -->
+  <text x="28" y="66" font-size="22" font-weight="700" fill="{TEXT}">{data['name']}</text>
+  <text x="28" y="88" font-size="12" fill="{MUTED}">@{data['username']}</text>
+  <text x="28" y="112" font-size="11" fill="{MUTED}">{data.get('account_age_years', 0)} years on GitHub &#183; {data.get('total_conts', 0)} contributions this year</text>
 
   <g transform="translate({ring_cx}, {ring_cy})">
-    <text x="0" y="-56" font-size="10" letter-spacing="0.5" fill="{MUTED}" text-anchor="middle">RANK</text>
-    <circle cx="0" cy="0" r="{ring_r}" fill="none" stroke="{BORDER}" stroke-width="8" />
-    <circle cx="0" cy="0" r="{ring_r}" fill="none" stroke="{CYAN}" stroke-width="8"
+    <circle cx="0" cy="0" r="{ring_r}" fill="none" stroke="{BORDER}" stroke-width="7" />
+    <circle cx="0" cy="0" r="{ring_r}" fill="none" stroke="{CYAN}" stroke-width="7"
       stroke-linecap="round" stroke-dasharray="{circumference:.2f}" stroke-dashoffset="{offset:.2f}"
       transform="rotate(-90)" />
-    <text x="0" y="8" font-size="24" font-weight="700" fill="{TEXT}" text-anchor="middle">{rank_letter}</text>
-    <text x="0" y="66" font-size="10.5" fill="{MUTED}" text-anchor="middle">{rank_pct}</text>
+    <text x="0" y="7" font-size="22" font-weight="700" fill="{TEXT}" text-anchor="middle">{rank_letter}</text>
   </g>
+  <text x="{ring_cx}" y="{ring_cy + ring_r + 20:.1f}" font-size="9.5" fill="{MUTED}" text-anchor="middle">{rank_pct}</text>
 
-  <line x1="28" y1="{grid_bottom + 24:.1f}" x2="{w - 28}" y2="{grid_bottom + 24:.1f}" stroke="{BORDER}" stroke-width="1" />
+  <line x1="28" y1="{hero_bottom}" x2="{w - 28}" y2="{hero_bottom}" stroke="{BORDER}" stroke-width="1" />
 
-  <g transform="translate(28, {footer_y})">
-    <text x="0" y="0" font-size="10" fill="{MUTED}">FOLLOWERS</text>
-    <text x="0" y="18" font-size="15" font-weight="700" fill="{TEXT}">{data.get('followers', 0)}</text>
-  </g>
-  <g transform="translate(180, {footer_y})">
-    <text x="0" y="0" font-size="10" fill="{MUTED}">PRIVATE CONTRIBUTIONS</text>
-    <text x="0" y="18" font-size="15" font-weight="700" fill="{TEXT}">{data.get('total_private', 0)}</text>
-  </g>
-  <g transform="translate(360, {footer_y})">
-    <text x="0" y="0" font-size="10" fill="{MUTED}">TOTAL CONTRIBUTIONS</text>
-    <text x="0" y="18" font-size="15" font-weight="700" fill="{TEXT}">{data.get('total_conts', 0)}</text>
-  </g>
+  <!-- Metric strip: one horizontal row, hairline dividers, no boxes -->
+  {"".join(strip_cells)}
+  {"".join(dividers)}
+
+  <line x1="28" y1="{footer_y - 18}" x2="{w - 28}" y2="{footer_y - 18}" stroke="{BORDER}" stroke-width="1" />
+  <text x="28" y="{footer_y}" font-size="10" fill="{MUTED}">{data.get('followers', 0)} followers</text>
+  <text x="{w - 28}" y="{footer_y}" font-size="10" fill="{MUTED}" text-anchor="end">{data.get('total_private', 0)} private contributions this year</text>
 </svg>"""
 
 
