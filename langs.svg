@@ -21,8 +21,8 @@
 
   <rect x="28" y="48" width="440" height="10" rx="5" fill="#1e2530" />
   <clipPath id="barclip"><rect x="28" y="48" width="440" height="10" rx="5" /></clipPath>
-  <g clip-path="url(#barclip)"><rect x="28.0" y="48" width="115.0" height="10" fill="#3178c6" /><rect x="143.0" y="48" width="110.3" height="10" fill="#f1e05a" /><rect x="253.2" y="48" width="96.5" height="10" fill="#e34c26" /><rect x="349.7" y="48" width="78.9" height="10" fill="#3572A5" /><rect x="428.7" y="48" width="32.7" height="10" fill="#663399" /><rect x="461.3" y="48" width="6.7" height="10" fill="#DA5B0B" /></g>
-  <rect x="28" y="75" width="8" height="8" rx="2" fill="#3178c6" /><text x="42" y="84" font-size="11.5" fill="#e2e8f0">TypeScript</text><text x="243" y="84" font-size="10.5" fill="#6b7789" text-anchor="end">26.1%</text><rect x="263" y="75" width="8" height="8" rx="2" fill="#f1e05a" /><text x="277" y="84" font-size="11.5" fill="#e2e8f0">JavaScript</text><text x="478" y="84" font-size="10.5" fill="#6b7789" text-anchor="end">25.1%</text><rect x="28" y="97" width="8" height="8" rx="2" fill="#e34c26" /><text x="42" y="106" font-size="11.5" fill="#e2e8f0">HTML</text><text x="243" y="106" font-size="10.5" fill="#6b7789" text-anchor="end">21.9%</text><rect x="263" y="97" width="8" height="8" rx="2" fill="#3572A5" /><text x="277" y="106" font-size="11.5" fill="#e2e8f0">Python</text><text x="478" y="106" font-size="10.5" fill="#6b7789" text-anchor="end">17.9%</text><rect x="28" y="119" width="8" height="8" rx="2" fill="#663399" /><text x="42" y="128" font-size="11.5" fill="#e2e8f0">CSS</text><text x="243" y="128" font-size="10.5" fill="#6b7789" text-anchor="end">7.4%</text><rect x="263" y="119" width="8" height="8" rx="2" fill="#DA5B0B" /><text x="277" y="128" font-size="11.5" fill="#e2e8f0">Jupyter Notebook</text><text x="478" y="128" font-size="10.5" fill="#6b7789" text-anchor="end">1.5%</text>
+  <g clip-path="url(#barclip)"><rect x="28.0" y="48" width="161.1" height="10" fill="#3178c6" /><rect x="189.1" y="48" width="131.0" height="10" fill="#f1e05a" /><rect x="320.2" y="48" width="110.3" height="10" fill="#3572A5" /><rect x="430.4" y="48" width="19.2" height="10" fill="#663399" /><rect x="449.6" y="48" width="9.4" height="10" fill="#DA5B0B" /><rect x="459.0" y="48" width="9.0" height="10" fill="#e34c26" /></g>
+  <rect x="28" y="75" width="8" height="8" rx="2" fill="#3178c6" /><text x="42" y="84" font-size="11.5" fill="#e2e8f0">TypeScript</text><text x="243" y="84" font-size="10.5" fill="#6b7789" text-anchor="end">36.6%</text><rect x="263" y="75" width="8" height="8" rx="2" fill="#f1e05a" /><text x="277" y="84" font-size="11.5" fill="#e2e8f0">JavaScript</text><text x="478" y="84" font-size="10.5" fill="#6b7789" text-anchor="end">29.8%</text><rect x="28" y="97" width="8" height="8" rx="2" fill="#3572A5" /><text x="42" y="106" font-size="11.5" fill="#e2e8f0">Python</text><text x="243" y="106" font-size="10.5" fill="#6b7789" text-anchor="end">25.1%</text><rect x="263" y="97" width="8" height="8" rx="2" fill="#663399" /><text x="277" y="106" font-size="11.5" fill="#e2e8f0">CSS</text><text x="478" y="106" font-size="10.5" fill="#6b7789" text-anchor="end">4.4%</text><rect x="28" y="119" width="8" height="8" rx="2" fill="#DA5B0B" /><text x="42" y="128" font-size="11.5" fill="#e2e8f0">Jupyter Notebook</text><text x="243" y="128" font-size="10.5" fill="#6b7789" text-anchor="end">2.1%</text><rect x="263" y="119" width="8" height="8" rx="2" fill="#e34c26" /><text x="277" y="128" font-size="11.5" fill="#e2e8f0">HTML</text><text x="478" y="128" font-size="10.5" fill="#6b7789" text-anchor="end">2.1%</text>
   <line x1="28" y1="176" x2="468" y2="176" stroke="#1e2530" stroke-width="1" />
   <text x="28" y="194" font-size="10" fill="#6b7789" letter-spacing="0.4">&#9733; PINNED</text>
   
@@ -31,11 +31,11 @@
     <text x="468" y="214" font-size="11" fill="#fbbf24" text-anchor="end">&#9733; 3</text>
     <text x="418" y="214" font-size="11" fill="#6b7789" text-anchor="end">fork 0</text>
     <circle cx="34" cy="230" r="3.5" fill="#e34c26" />
-    <text x="46" y="234" font-size="11.5" fill="#e2e8f0">MyWay</text>
+    <text x="46" y="234" font-size="11.5" fill="#e2e8f0">CSI-Sentry</text>
     <text x="468" y="234" font-size="11" fill="#fbbf24" text-anchor="end">&#9733; 3</text>
     <text x="418" y="234" font-size="11" fill="#6b7789" text-anchor="end">fork 0</text>
-    <circle cx="34" cy="250" r="3.5" fill="#e34c26" />
-    <text x="46" y="254" font-size="11.5" fill="#e2e8f0">CSI-Sentry</text>
+    <circle cx="34" cy="250" r="3.5" fill="#3572A5" />
+    <text x="46" y="254" font-size="11.5" fill="#e2e8f0">Hiten1896</text>
     <text x="468" y="254" font-size="11" fill="#fbbf24" text-anchor="end">&#9733; 3</text>
     <text x="418" y="254" font-size="11" fill="#6b7789" text-anchor="end">fork 0</text>
 </svg>

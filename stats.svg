@@ -23,12 +23,12 @@
   <!-- Hero band: identity on the left, rank ring as the visual anchor on the right -->
   <text x="28" y="70" font-size="24" font-weight="700" fill="#e2e8f0">Hiten Sharma</text>
   <text x="28" y="94" font-size="12.5" fill="#6b7789">Hiten1896</text>
-  <text x="28" y="118" font-size="18" font-weight="700" fill="#7dd3fc">244<tspan font-size="10.5" font-weight="400" fill="#6b7789"> contributions &#183; 1.2y</tspan></text>
+  <text x="28" y="118" font-size="18" font-weight="700" fill="#7dd3fc">258<tspan font-size="10.5" font-weight="400" fill="#6b7789"> contributions &#183; 1.2y</tspan></text>
 
   <g transform="translate(420, 78)">
     <circle cx="0" cy="0" r="38" fill="none" stroke="#1e2530" stroke-width="7" />
     <circle cx="0" cy="0" r="38" fill="none" stroke="#7dd3fc" stroke-width="7"
-      stroke-linecap="round" stroke-dasharray="238.76" stroke-dashoffset="174.30"
+      stroke-linecap="round" stroke-dasharray="238.76" stroke-dashoffset="176.68"
       transform="rotate(-90)" />
     <text x="0" y="7" font-size="22" font-weight="700" fill="#e2e8f0" text-anchor="middle">B</text>
   </g>
@@ -39,10 +39,10 @@
   <!-- Metric strip: one horizontal row, hairline dividers, no boxes -->
   
     <rect x="54.7" y="170.0" width="20" height="3" rx="1.5" fill="#7dd3fc" />
-    <text x="64.7" y="192.0" font-size="21" font-weight="700" fill="#e2e8f0" text-anchor="middle">16</text>
+    <text x="64.7" y="192.0" font-size="21" font-weight="700" fill="#e2e8f0" text-anchor="middle">13</text>
     <text x="64.7" y="210.0" font-size="9.5" letter-spacing="0.4" fill="#6b7789" text-anchor="middle">STARS</text>
     <rect x="128.0" y="170.0" width="20" height="3" rx="1.5" fill="#4ade80" />
-    <text x="138.0" y="192.0" font-size="21" font-weight="700" fill="#e2e8f0" text-anchor="middle">223</text>
+    <text x="138.0" y="192.0" font-size="21" font-weight="700" fill="#e2e8f0" text-anchor="middle">237</text>
     <text x="138.0" y="210.0" font-size="9.5" letter-spacing="0.4" fill="#6b7789" text-anchor="middle">COMMITS</text>
     <rect x="201.3" y="170.0" width="20" height="3" rx="1.5" fill="#c084fc" />
     <text x="211.3" y="192.0" font-size="21" font-weight="700" fill="#e2e8f0" text-anchor="middle">9</text>
@@ -54,7 +54,7 @@
     <text x="358.0" y="192.0" font-size="21" font-weight="700" fill="#e2e8f0" text-anchor="middle">1</text>
     <text x="358.0" y="210.0" font-size="9.5" letter-spacing="0.4" fill="#6b7789" text-anchor="middle">ISSUES</text>
     <rect x="421.3" y="170.0" width="20" height="3" rx="1.5" fill="#38bdf8" />
-    <text x="431.3" y="192.0" font-size="21" font-weight="700" fill="#e2e8f0" text-anchor="middle">6</text>
+    <text x="431.3" y="192.0" font-size="21" font-weight="700" fill="#e2e8f0" text-anchor="middle">5</text>
     <text x="431.3" y="210.0" font-size="9.5" letter-spacing="0.4" fill="#6b7789" text-anchor="middle">REPOS</text>
   <line x1="101.3" y1="174.0" x2="101.3" y2="214.0" stroke="#1e2530" stroke-width="1" /><line x1="174.7" y1="174.0" x2="174.7" y2="214.0" stroke="#1e2530" stroke-width="1" /><line x1="248.0" y1="174.0" x2="248.0" y2="214.0" stroke="#1e2530" stroke-width="1" /><line x1="321.3" y1="174.0" x2="321.3" y2="214.0" stroke="#1e2530" stroke-width="1" /><line x1="394.7" y1="174.0" x2="394.7" y2="214.0" stroke="#1e2530" stroke-width="1" />
 
