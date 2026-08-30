@@ -115,6 +115,7 @@ A sleek web application for movie searching, tracking streaming and music availa
   * Optimized single-page app performance to maintain minimal UI latency during media searches.
   * Implemented secure environment configurations to protect third-party API keys.
 </details>
+
 ---
 
 ## 📊 GitHub Analytics
