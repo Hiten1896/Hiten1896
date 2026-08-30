@@ -102,7 +102,7 @@ A digital forensics suite built with React and Firebase designed to detect AI-ge
 </details>
 
 <details>
-<summary><b>🎬 MYWay – Movie & Music Availability Tracking App</b></summary>
+<summary><b>🎬 MyWay – Movie & Music Availability Tracking App</b></summary>
 <br />
 A sleek web application for movie searching, tracking streaming and music availability, and aggregating media metadata.
 
