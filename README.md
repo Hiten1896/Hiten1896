@@ -70,6 +70,21 @@
 ### 🚀 Featured Projects
 
 <details>
+<summary><b>🤖 RAG Document Agent – Enterprise Q&A System</b></summary>
+<br />
+An enterprise-grade Retrieval-Augmented Generation (RAG) backend built to ingest multi-page PDFs, perform semantic text chunking, and execute context-grounded Q&A with Google Gemini.
+
+| Stack | Scale | Performance | Security | Impact | Repository |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| FastAPI, LangChain, ChromaDB, Hugging Face | API Backend Service | Optimized local embedding generation & retrieval | Secure local vector storage & env configuration | Context-grounded zero-hallucination Q&A | [Hiten1896/RAG-Document-Agent](https://github.com/Hiten1896) |
+
+* **Engineering Highlights:**
+  * Designed automated PDF ingestion pipelines with semantic text chunking.
+  * Integrated ChromaDB for persistent vector storage and rapid similarity search.
+  * Configured traceable page-level source citations with relevance scoring.
+</details>
+
+<details>
 <summary><b>🛡️ TrustGuard Pro – Digital Forensics Suite</b></summary>
 <br />
 
