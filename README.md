@@ -76,7 +76,7 @@ An enterprise-grade Retrieval-Augmented Generation (RAG) backend built to ingest
 
 | Stack | Scale | Performance | Security | Impact | Repository |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| FastAPI, LangChain, ChromaDB, Hugging Face | API Backend Service | Optimized local embedding generation & retrieval | Secure local vector storage & env configuration | Context-grounded zero-hallucination Q&A | [Hiten1896/RAG-Document-Agent](https://github.com/Hiten1896) |
+| FastAPI, LangChain, ChromaDB, RAG | API Backend Service | Optimized local embedding generation & retrieval | Secure local vector storage & env configuration | Context-grounded zero-hallucination Q&A | [Hiten1896/RAG-Document-Agent](https://github.com/Hiten1896) |
 
 * **Engineering Highlights:**
   * Designed automated PDF ingestion pipelines with semantic text chunking.
