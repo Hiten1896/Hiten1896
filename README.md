@@ -29,7 +29,6 @@
 </p>
 
 ---
-
 ### 🧰 Tech Stack & Tools
 
 <p align="left">
@@ -48,6 +47,7 @@
   <img src="https://img.shields.io/badge/NumPy-013243?style=flat-square&logo=numpy&logoColor=white" />
   <img src="https://img.shields.io/badge/Ollama-000000?style=flat-square&logo=ollama&logoColor=white" />
   <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white" />
+  <img src="https://img.shields.io/badge/RAG-4285F4?style=flat-square&logo=googlegemini&logoColor=white" />
   <br /><br />
 
   <b>Cloud, Deployment & Tools:</b><br />
