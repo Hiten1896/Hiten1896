@@ -102,21 +102,19 @@ A digital forensics suite built with React and Firebase designed to detect AI-ge
 </details>
 
 <details>
-<summary><b>🎬 Movie Hunt – Streaming & Movie Tracking App</b></summary>
+<summary><b>🎬 MYWay – Movie & Music Availability Tracking App</b></summary>
 <br />
-
-A sleek web application for movie searching, tracking streaming availability, and aggregating IMDb data.
+A sleek web application for movie searching, tracking streaming and music availability, and aggregating media metadata.
 
 | Stack | Scale | Performance | Security | Impact | Repository |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | JavaScript, TMDB API, HTML5/CSS3 | Single Page Web App | Async API fetching with minimal latency | Encrypted environment API keys | Simplified discovery for users | [Hiten1896/Movie-Hunt](https://github.com/Hiten1896) |
 
-*   **Engineering Highlights:**
-    *   Leveraged TMDB API for real-time movie queries and streaming availability data.
-    *   Built custom responsive UI layouts with dynamic data rendering.
-
+* **Engineering Highlights:**
+  * Developed asynchronous API integration for real-time movie and music availability fetching.
+  * Optimized single-page app performance to maintain minimal UI latency during media searches.
+  * Implemented secure environment configurations to protect third-party API keys.
 </details>
-
 ---
 
 ## 📊 GitHub Analytics
