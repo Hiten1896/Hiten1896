@@ -23,7 +23,7 @@
   <!-- Hero band: identity on the left, rank ring as the visual anchor on the right -->
   <text x="28" y="70" font-size="24" font-weight="700" fill="#e2e8f0">Hiten Sharma</text>
   <text x="28" y="94" font-size="12.5" fill="#6b7789">Hiten1896</text>
-  <text x="28" y="118" font-size="18" font-weight="700" fill="#7dd3fc">545<tspan font-size="10.5" font-weight="400" fill="#6b7789"> contributions &#183; 1.2y</tspan></text>
+  <text x="28" y="118" font-size="18" font-weight="700" fill="#7dd3fc">547<tspan font-size="10.5" font-weight="400" fill="#6b7789"> contributions &#183; 1.2y</tspan></text>
 
   <g transform="translate(420, 78)">
     <circle cx="0" cy="0" r="38" fill="none" stroke="#1e2530" stroke-width="7" />
@@ -42,7 +42,7 @@
     <text x="64.7" y="192.0" font-size="21" font-weight="700" fill="#e2e8f0" text-anchor="middle">13</text>
     <text x="64.7" y="210.0" font-size="9.5" letter-spacing="0.4" fill="#6b7789" text-anchor="middle">STARS</text>
     <rect x="128.0" y="170.0" width="20" height="3" rx="1.5" fill="#4ade80" />
-    <text x="138.0" y="192.0" font-size="21" font-weight="700" fill="#e2e8f0" text-anchor="middle">519</text>
+    <text x="138.0" y="192.0" font-size="21" font-weight="700" fill="#e2e8f0" text-anchor="middle">521</text>
     <text x="138.0" y="210.0" font-size="9.5" letter-spacing="0.4" fill="#6b7789" text-anchor="middle">COMMITS</text>
     <rect x="201.3" y="170.0" width="20" height="3" rx="1.5" fill="#c084fc" />
     <text x="211.3" y="192.0" font-size="21" font-weight="700" fill="#e2e8f0" text-anchor="middle">9</text>
