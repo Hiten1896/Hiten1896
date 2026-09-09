@@ -121,20 +121,32 @@ A sleek web application for movie searching, tracking streaming and music availa
 ## 📊 GitHub Analytics
 
 <p align="center">
-  <img src="./stats.svg" alt="GitHub Stats" width="49%" />
-  <img src="./langs.svg" alt="Top Languages" width="49%" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./stats.svg" />
+    <source media="(prefers-color-scheme: light)" srcset="./stats-light.svg" />
+    <img src="./stats.svg" alt="GitHub Stats" width="49%" />
+  </picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./langs.svg" />
+    <source media="(prefers-color-scheme: light)" srcset="./langs-light.svg" />
+    <img src="./langs.svg" alt="Top Languages" width="49%" />
+  </picture>
 </p>
 
 <p align="center">
-  <img src="./streak.svg" alt="Contribution Streak" width="100%" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./streak.svg" />
+ <source media="(prefers-color-scheme: light)" srcset="./streak-light.svg" />
+    <img src="./streak.svg" alt="Contribution Streak" width="100%" />
+  </picture>
 </p>
 
 ---
 
-### 🗓 Contribution Activity 
+### 🗓 Contribution Activity
 
 <p align="center">
-  <img src="./year.svg" alt="Contribution Graph" width="100%" />
+  <img src="./year.svg" alt="Contribution Graph"="100%" />
 </p>
 
 ---

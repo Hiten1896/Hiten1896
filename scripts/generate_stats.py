@@ -1,605 +1,472 @@
 #!/usr/bin/env python3
 """
-scripts/generate_stats.py
-Fetches GitHub profile stats using GraphQL API, subsets font, and generates:
-stats.svg, streak.svg, and langs.svg.
-
-Visual identity: "editor pane" cards -- each card mimics a minimal code
-editor window (tab bar + dots), set in a dark slate palette with cyan/violet
-accents and full monospace type. The streak card includes a real rendered
-GitHub-style contribution heatmap (not a placeholder).
+GitHub Profile Stats Generator
+Generates dark + light versions of: stats, streak, langs cards.
+All numbers are REAL (GitHub GraphQL API). No fake fallback data.
+Theme switching is done in README via <picture> + prefers-color-scheme.
 """
 
 import os
-import json
-import base64
-import io
-import urllib.request
-from datetime import datetime, timezone, timedelta
+import requests
+from datetime import datetime, timedelta
+from collections import defaultdict
 
-FONT_PATH = os.path.join(os.path.dirname(__file__), "JetBrainsMono-Regular.ttf")
-FONT_URL = "https://raw.githubusercontent.com/JetBrains/JetBrainsMono/master/fonts/ttf/JetBrainsMono-Regular.ttf"
+# ─────────────────────────────────────────────
+# CONFIG
+# ─────────────────────────────────────────────
+GITHUB_TOKEN = os.getenvGITHUB_TOKEN")
+USERNAME = os.getenv("GITHUB_USER", "Hiten1896")
+API_URL = "https://api.github.com/graphql"
 
-# ---------------------------------------------------------------------------
-# Design tokens
-# ---------------------------------------------------------------------------
-BG = "#0a0e14"
-PANEL = "#10161f"
-BORDER = "#1e2530"
-TEXT = "#e2e8f0"
-MUTED = "#6b7789"
-CYAN = "#7dd3fc"
-VIOLET = "#c084fc"
-GREEN = "#4ade80"
-AMBER = "#fbbf24"
-RED = "#f87171"
+# ─────────────────────────────────────────────
+# THEMES
+# ─────────────────────────────────────────────
+THEMES = {
+    "dark": {
+        "BG":     "#0d1117",
+        "PANEL":  "#161b22",
+        "BORDER": "#30363d",
+        "TEXT": "#e6edf3",
+        "MUTED":  "#8b949e",
+        "GREEN":  "#3fb950",
+        "RED":    "#f85149",
+        "CYAN":   "#39d0d8",
+        "VIOLET": "#a371f7",
+        "AMBER":  "#e3b341",
+        "PINK":   "#f472b6",
+        "HEAT":   ["#161b22", "#0e4429", "#006d32", "#26a641", "#39d353"],
+        "LIGHTS": ["#ff5f57", "#febc2e", "#28c840"],
+    },
+    "light": {
+        "BG":     "#ffffff",
+        "PANEL":  "#f6f8fa",
+        "BORDER": "#d0d7de",
+        "TEXT":   "#1f2328",
+        "MUTED":  "#656d76",
+        "GREEN":  "#17f37",
+        "RED":    "#cf222e",
+        "CYAN":   "#0969da",
+        "VIOLET": "#8250df",
+        "AMBER":  "#9a6700",
+        "PINK":   "#bf3989",
+        "HEAT":   ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"],
+        "LIGHTS": ["#ff5f57", "#febc2e", "#28c840"],
+    },
+}
 
-HEAT_SCALE = ["#151b24", "#123a2e", "#1a6b4a", "#22a866", "#4ade80"]
+FONT_FAMILY = "'Segoe UI', 'JetBrains Mono', monospace"
 
-
-def ensure_font():
-    if not os.path.exists(FONT_PATH):
-        try:
-            req = urllib.request.Request(FONT_URL, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req) as resp, open(FONT_PATH, "wb") as f:
-                f.write(resp.read())
-        except Exception as e:
-            print(f"Warning: Could not download JetBrains Mono font: {e}")
-
-
-def subset_font_b64(text_content):
-    ensure_font()
-    if not os.path.exists(FONT_PATH):
-        return "", ""
-    try:
-        from fontTools import subset
-        options = subset.Options()
-        options.flavor = 'woff2'
-        font = subset.load_font(FONT_PATH, options)
-        subsetter = subset.Subsetter(options=options)
-        chars = "".join(set(
-            text_content + "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-            ".:,+-*/%#@! ()[]{}<>&|_~'\"-->"
-        ))
-        subsetter.populate(text=chars)
-        subsetter.subset(font)
-        buf = io.BytesIO()
-        font.save(buf)
-        return base64.b64encode(buf.getvalue()).decode('utf-8'), 'woff2'
-    except Exception:
-        with open(FONT_PATH, "rb") as f:
-            return base64.b64encode(f.read()).decode('utf-8'), 'truetype'
+LANG_COLORS = {
+    "Python": "#3572A5", "JavaScript": "#f1e05a", "TypeScript": "#3178c6",
+    "HTML": "#e34c26", "CSS": "#563d7c", "Vue": "#41b883", "Shell": "#89e051",
+    "Java": "#b07219", "C++": "#f34b7d", "C": "#555555", "Go": "#00ADD8",
+    "Rust": "#dea584", "Jupyter Notebook": "#DA5B0B", "Dart": "#00B4AB",
+    "Kotlin": "#A97BFF", "PHP": "#4F5D95", "Ruby": "#701516", "Other": "#8b949e",
+}
 
 
-def get_font_style_css(text_content):
-    b64_font, fmt = subset_font_b64(text_content)
-    if not b64_font:
-        return ""
+def css(theme):
+    return f"text {{ font-family: {FONT_FAMILY}; }}"
+
+
+def editor_chrome(T, w, h, title, accent):
+    t = title or "~/.github/profile"
     return f"""
-    @font-face {{
-      font-family: 'JetBrains Mono';
-      src: url('data:font/{fmt};base64,{b64_font}') format('{fmt}');
-      font-weight: normal;
-      font-style: normal;
-    }}
-    text {{ font-family: 'JetBrains Mono', monospace; }}
-    """
+  <rect x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="10" fill="{T['PANEL']}" stroke="{T['BORDER']}"/>
+  <line x1="0.5" y1="30" x2="{w-0.5}" y2="30" stroke="{T['BORDER']}"/>
+  <circle cx="18" cy="15.5" r="5" fill="{T['LIGHTS'][0]}"/>
+  <circle cx="34" cy="15.5" r="5" fill="{T['LIGHTS'][1]}"/>
+  <circle cx="50" cy="15.5" r="5" fill="{T['LIGHTS'][2]}"/>
+  <text x="64" y="19.5" font-size="10.5" fill="{T['MUTED']}">{t}</text>
+  <circle cx="{w-16}" cy="15.5" r="3.5" fill="{accent}"/>"""
 
 
-# ---------------------------------------------------------------------------
-# Data fetching
-# ---------------------------------------------------------------------------
+# ─────────────────────────────────────────────
+# DATA FETCH (real data only)
+# ─────────────────────────────────────────────
 def fetch_github_stats():
-    username = os.environ.get("GITHUB_REPOSITORY_OWNER") or os.environ.get("GITHUB_ACTOR") or "Hiten1896"
-    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if not GITHUB_TOKEN:
+        print("ERROR: GITHUB_TOKEN not set.")
+        return None
 
-    print(f"Fetching stats for user: {username} (Token provided: {bool(token)})")
+    to_dt = datetime.utcnow()
+    from_dt = to_dt - timedelta(days=365)
 
-    now_utc = datetime.now(timezone.utc)
-    to_dt = now_utc.replace(hour=23, minute=59, second=59, microsecond=0)
-    from_dt = (now_utc - timedelta(days=363)).replace(hour=0, minute=0, second=0, microsecond=0)
-
-    graphql_query = """
-    query($username: String!, $from: DateTime!, $to: DateTime!) {
-      user(login: $username) {
+    query = f"""
+    query {{
+      user(login: "{USERNAME}") {{
         name
-        login
         createdAt
-        followers { totalCount }
-        contributionsCollection(from: $from, to: $to) {
+        followers {{ totalCount }}
+        repositories(first: 100, ownerAffiliations: OWNER, isFork: false) {{
+          totalCount
+          nodes {{ stargazerCount forkCount primaryLanguage {{ name }}
+        }}
+        contributionsCollection(
+          from: "{from_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}",
+          to: "{to_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}") {{
           totalCommitContributions
-          totalIssueContributions
           totalPullRequestContributions
           totalPullRequestReviewContributions
-          restrictedContributionsCount
-          contributionCalendar {
-            totalContributions
-            weeks {
-              contributionDays {
-                contributionCount
-                date
-                color
-                weekday
-              }
-            }
-          }
-        }
-        repositories(first: 100, isFork: false, privacy: PUBLIC, orderBy: {field: STARGAZERS, direction: DESC}) {
-          totalCount
-          nodes {
-            name
-            stargazerCount
-            forkCount
-            primaryLanguage { name color }
-            languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
-              edges { size node { name color } }
-            }
-          }
-        }
-      }
-    }
-    """
-
-    if not token:
-        print("Error: No GitHub token found in environment variables!")
-        return generate_fallback_stats(username, from_dt, to_dt)
-
-    payload = json.dumps({
-        "query": graphql_query,
-        "variables": {
-            "username": username,
-            "from": from_dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "to": to_dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        }
-    }).encode("utf-8")
-
-    req = urllib.request.Request(
-        "https://api.github.com/graphql",
-        data=payload,
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json", "User-Agent": "Python-urllib/3.x"}
-    )
+          totalContributions
+          contributionCalendar {{
+           Contributions
+            weeks {{
+              contributionDays {{ date contributionCount weekday }}
+            }}
+          }}
+        }}
+      }}
+    }}"""
 
     try:
-        with urllib.request.urlopen(req) as resp:
-            res_data = json.loads(resp.read().decode("utf-8"))
-            if "errors" in res_data or not res_data.get("data") or not res_data["data"].get("user"):
-                print("GraphQL Error Response:", res_data)
-                return generate_fallback_stats(username, from_dt, to_dt)
-            print("Successfully fetched live GitHub data!")
-            return parse_graphql_response(res_data["data"]["user"], from_dt, to_dt)
+        resp = requests.post(
+            API_URL, json={"query": query},
+            headers={"Authorization": f"Bearer {GITHUB_TOKEN}"}, timeout=30)
+        resp.raise_for_status()
+        result = resp.json()
+        if "errors" result or result.get("data", {}).get("user") is None:
+            print(f"GraphQL error: {result.get('errors')}")
+            return None
+        return parse_graphql_response(result["data"]["user"])
     except Exception as e:
-        print("API Request Exception:", e)
-        return generate_fallback_stats(username, from_dt, to_dt)
+        print(f"API request failed: {e}")
+        return None
 
 
-def parse_graphql_response(user_data, from_dt, to_dt):
-    col = user_data["contributionsCollection"]
-    cal = col["contributionCalendar"]
-    repos = user_data["repositories"]["nodes"]
-
-    total_stars = sum(r["stargazerCount"] for r in repos)
-    total_forks = sum(r["forkCount"] for r in repos)
-    total_commits = col["totalCommitContributions"]
-    total_prs = col["totalPullRequestContributions"]
-    total_reviews = col.get("totalPullRequestReviewContributions", 0)
-    total_issues = col["totalIssueContributions"]
-    total_private = col.get("restrictedContributionsCount", 0)
-    total_repos = user_data["repositories"]["totalCount"]
-    total_conts = cal["totalContributions"]
-    followers = user_data.get("followers", {}).get("totalCount", 0)
-
-    account_age_days = (datetime.now(timezone.utc) - datetime.fromisoformat(
-        user_data["createdAt"].replace("Z", "+00:00"))).days
-    account_age_years = round(account_age_days / 365.25, 1)
-
-    lang_map = {}
-    for r in repos:
-        for edge in r.get("languages", {}).get("edges", []):
-            lname = edge["node"]["name"]
-            lcolor = edge["node"]["color"] or "#858585"
-            lsize = edge["size"]
-            if lname not in lang_map:
-                lang_map[lname] = {"size": 0, "color": lcolor}
-            lang_map[lname]["size"] += lsize
-
-    top_repos = sorted(repos, key=lambda r: r["stargazerCount"], reverse=True)[:3]
-
-    days_list = []
-    for week in cal["weeks"]:
+def parse_graphql_response(user):
+    days = []
+    for week in user["contributionsCollection"]["contributionCalendar"]["weeks"]:
         for d in week["contributionDays"]:
-            days_list.append({"date": d["date"], "count": d["contributionCount"], "color": d["color"], "weekday": d["weekday"]})
+            days.append({"date": d["date"], "count": d["contributionCount"],
+                         "weekday": d["weekday"]})
+    days.sort(key=lambda x: x["date"])
+
+    repos = user["repositories"]["nodes"]
+    created = datetime.strptime(user["createdAt"], "%Y-%m-%dT%H:%M:%SZ")
+
+    # Real language bytes estimate: count repos per primary language
+    lang = defaultdict(int)
+    for r in repos:
+        if r.get("primaryLanguage") and r["primaryLanguage"].get("name"):
+            lang_count[r["primaryLanguage"]["name"]] += 1
 
     return {
-        "username": user_data["login"],
-        "name": user_data.get("name") or user_data["login"],
-        "followers": followers,
-        "account_age_years": account_age_years,
-        "total_stars": total_stars, "total_forks": total_forks,
-        "total_commits": total_commits, "total_prs": total_prs,
-        "total_reviews": total_reviews, "total_issues": total_issues,
-        "total_private": total_private,
-        "total_repos": total_repos,
-        "total_conts": total_conts, "languages": lang_map,
-        "top_repos": top_repos,
-        "days": days_list, "from_dt": from_dt, "to_dt": to_dt
+        "name": user.get("name") or USERNAME,
+        "username": USERNAME,
+        "followers":["followers"]["totalCount"],
+        "total_repos": user["repositories"]["totalCount"],
+        "total_stars": sum(r["stargazerCount"] for r in repos),
+        "total_forks": sum(r["forkCount"] for r in repos),
+        "account_age_years": round((datetime.utcnow() - created).days / 365.25, 1),
+        "total_commits": user["contributionsCollection"]["totalCommitContributions"],
+        "total_prs": user["contributionsCollection"]["totalPullRequestContributions"],
+        "total_reviews": user["contributionsCollection"]["totalPullRequestReviewContributions"],
+        "total_issues": user["contributionsCollection"]["totalIssueContributions"],
+        "total_conts": user["contributionsCollection"]["contributionCalendar"]["totalContributions"],
+        "days": days,
+        "langs": lang_count,
     }
 
 
-def generate_fallback_stats(username, from_dt, to_dt):
-    print("Using fallback dummy stats.")
-    days_list, curr, total_c = [], from_dt, 0
-    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    yesterday_str = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
-    while curr <= to_dt:
-        d_str = curr.strftime("%Y-%m-%d")
-        c_val = 2 if d_str in [today_str, yesterday_str] else (1 if curr.weekday() < 5 else 0)
-        days_list.append({"date": d_str, "count": c_val, "color": "#26a641" if c_val > 0 else "#161b22", "weekday": curr.weekday()})
-        total_c += c_val
-        curr += timedelta(days=1)
-    return {
-        "username": username, "name": username, "followers": 32, "account_age_years": 3.2,
-        "total_stars": 12, "total_forks": 4,
-        "total_commits": 148, "total_prs": 18, "total_reviews": 9, "total_issues": 6,
-        "total_private": 40, "total_repos": 14,
-        "total_conts": total_c,
-        "languages": {
-            "JavaScript": {"size": 450000, "color": "#f1e05a"},
-            "Python": {"size": 220000, "color": "#3572A5"},
-            "TypeScript": {"size": 150000, "color": "#3178c6"},
-        },
-        "top_repos": [
-            {"name": "example-repo", "stargazerCount": 12, "forkCount": 3, "primaryLanguage": {"name": "JavaScript", "color": "#f1e05a"}},
-        ],
-        "days": days_list, "from_dt": from_dt, "to_dt": to_dt
-    }
-
-
-# ---------------------------------------------------------------------------
-# Derived metrics
-# ---------------------------------------------------------------------------
+# ─────────────────────────────────────────────
+# CALCULATIONS
+# ─────────────────────────────────────────────
 def calculate_rank(data):
-    """Weighted, saturating score -> letter rank. More signal than a raw sum."""
-    import math
-    stars = data["total_stars"]
-    commits = data["total_commits"]
-    prs = data["total_prs"]
-    issues = data["total_issues"]
-    reviews = data.get("total_reviews", 0)
-    followers = data.get("followers", 0)
-    repos = data["total_repos"]
-
-    def sat(x, half_life):
-        return 1 - math.exp(-x / half_life) if half_life else 0
-
-    score = (
-        sat(stars, 50) * 30 +
-        sat(commits, 250) * 25 +
-        sat(prs, 50) * 15 +
-        sat(reviews, 30) * 10 +
-        sat(issues, 25) * 5 +
-        sat(followers, 100) * 10 +
-        sat(repos, 30) * 5
-    )
-
-    if score >= 85: return "S", "TOP 1%", score
-    if score >= 70: return "A+", "TOP 5%", score
-    if score >= 55: return "A", "TOP 15%", score
-    if score >= 38: return "B+", "TOP 30%", score
-    if score >= 22: return "B", "TOP 50%", score
-    return "C", "GROWING", score
+    total = data["total_conts"]
+    active = sum(1 for d in data[""] if d["count"] > 0)
+    score = min(100, (total / 20) + (active / 3.65))
+    if score >= 85: return "S", "TOP 2%",  score
+    if score >= 70: return "A", "TOP 8%",  score
+    if score >= 55: return "B", "TOP 25%", score
+    if score >= 40: return "C", "TOP 45%", score
+    return "D", "TOP 70%", score
 
 
-def format_date_str(date_str):
-    if not date_str:
-        return ""
-    try:
-        dt = datetime.strptime(date_str, "%Y-%m-%d")
-        return dt.strftime("%d %b %Y")
-    except Exception:
-        return date_str
+def calculate_streak(days):
+    longest = run = 0
+    for d in days:
+        run = run + 1 if d["count"] > 0 else 0
+        longest = max(longest, run)
 
-
-def calculate_streak(days_list):
-    total_active = sum(1 for d in days_list if d["count"] > 0)
-    max_streak, curr_streak = 0, 0
-    max_start, max_end = "", ""
-    curr_start, curr_end = "", ""
-
-    temp_streak = 0
-    temp_start = ""
-
-    for d in days_list:
+    current = 0
+    for d in reversed(days):
         if d["count"] > 0:
-            if temp_streak == 0:
-                temp_start = d["date"]
-            temp_streak += 1
-            curr_streak = temp_streak
-            curr_start = temp_start
-            curr_end = d["date"]
+            current += 1
+        elif current > 0:
+            break
 
-            if curr_streak >= max_streak:
-                max_streak = curr_streak
-                max_start = curr_start
-                max_end = curr_end
-        else:
-            temp_streak = 0
-            curr_streak = 0
-            curr_start = ""
-            curr_end = ""
+    long_range = curr_range = "-"
+    longest_end, run = None, 0
+    for i, d in enumerate(days):
+        run = run + 1 if d["count"] > 0 else 0
+        if run == longest:
+            longest_end = i    if longest_end is not None and longest > 0:
+        s = datetime.strptime(days[longest_end - longest + 1]["date"], "%Y-%m-%d")
+        e = datetime.strptime(days[longest_end]["date"], "%Y-%m-%d")
+        long_range = f"{s.strftime('%d %b')} \u2192 {e.strftime('%d %b')}"
+    if current > 0 and days:
+        e = datetime.strptime(days[-1]["date"], "%Y-%m-%d")
+        s = e - timedelta(days=current - 1)
+        curr_range = f"{s.strftime('%d %b')} \u2192 {e.strftime('%d %b')}"
 
-    # If the most recent day has no contributions, current streak is genuinely 0.
-    if days_list and days_list[-1]["count"] == 0:
-        curr_streak = 0
-        curr_start = curr_end = ""
+    best = max(days, key=lambda x: x["count"]) if days else {"count": 0, "date": None}
+    best_date = datetime.strptime(best["date"], "%Y-%m-%d").strftime("%d %b") if best["date"] else None
 
-    if not max_start and days_list:
-        max_start = days_list[0]["date"]
-        max_end = days_list[0]["date"]
+    active_days = sum(1 for d in days if d["count"] > 0)
+    total = sum(d["count"] for d in days)
+    avg = round(total / active_days, 1) if active_days else 0
 
-    best_day = max(days_list, key=lambda d: d["count"], default={"count": 0, "date": ""})
-    avg_per_active_day = round(sum(d["count"] for d in days_list) / total_active, 1) if total_active else 0
-
-    return {
-        "current_streak": curr_streak,
-        "longest_streak": max_streak,
-        "total_active": total_active,
-        "curr_range": f"{format_date_str(curr_start)} -> {format_date_str(curr_end)}" if curr_start else "No active streak right now",
-        "long_range": f"{format_date_str(max_start)} -> {format_date_str(max_end)}",
-        "best_day_count": best_day["count"],
-        "best_day_date": format_date_str(best_day["date"]),
-        "avg_per_active_day": avg_per_active_day,
-    }
+    return {"current_streak": current, "longest_streak": longest,
+            "long_range": long_range, "curr_range": curr_range,
+            "best_day_count": best["count"], "best_day_date": best_date,
+            "total_active": active_days,avg_per_active_day": avg}
 
 
-# ---------------------------------------------------------------------------
-# Shared SVG chrome -- "editor pane" signature element
-# ---------------------------------------------------------------------------
-def editor_chrome(w, h, tab_label, accent):
-    """Top tab bar mimicking a minimal code editor window (no filename text)."""
-    return f"""
-  <rect x="0" y="0" width="{w}" height="{h}" rx="14" fill="{PANEL}" />
-  <rect x="0.75" y="0.75" width="{w - 1.5}" height="{h - 1.5}" rx="13.25" fill="none" stroke="{BORDER}" stroke-width="1.5" />
-  <rect x="0" y="0" width="{w}" height="34" rx="14" fill="{BG}" />
-  <rect x="0" y="20" width="{w}" height="14" fill="{BG}" />
-  <line x1="0" y1="34" x2="{w}" y2="34" stroke="{BORDER}" stroke-width="1" />
-  <circle cx="20" cy="17" r="5" fill="{RED}" opacity="0.85" />
-  <circle cx="37" cy="17" r="5" fill="{AMBER}" opacity="0.85" />
-  <circle cx="54" cy="17" r="5" fill="{GREEN}" opacity="0.85" />
-  <rect x="{w - 34}" y="10" width="20" height="14" rx="3" fill="none" stroke="{accent}" stroke-width="1.2" opacity="0.6" />
-"""
+def calculate_activity_insights(days):
+    max_gap = curr_gap = 0
+    for d in days:
+        curr_gap = curr_gap + 1 if d["count"] == 0 else 0
+        max_gap = max(max_gap, curr_gap)
+
+    all_total = sum(d["count"] for d in days) or 1
+    weekend_pct = round(sum(d["count"] for d in days d["weekday"] in (0, 6)) / all_total * 100)
+
+    month_totals = defaultdict(int)
+    for d in days:
+        month_totals[d["date"][:7]] += d["count"]
+    busiest_name, busiest_count = "-", 0    if month_totals:
+        mk, busiest_count = max(month_totals.items(), key=lambda x: x[1])
+        busiest_name = datetime.strptime(mk, "%Y-%m").strftime("%B")
+
+    wd = defaultdict(int)
+    for d in days:
+        wd[d["weekday"]] += d["count"]
+    names = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    top_weekday = names[max(wd, key=wd.get)] if wd else "-"
+
+    return {"longest_gap": max_gap, "weekend_pct": weekend_pct,
+            "busiest_month": busiest_name, "busiest_month_count": busiest_count,
+            "top_weekday": top_weekday}
 
 
-# ---------------------------------------------------------------------------
-# Card 1: Stats overview
-# ---------------------------------------------------------------------------
-def generate_stats_svg(data):
-    w, h = 496, 300
+def render_heatmap(T, days, cell=7.2, gap=2.3):
+    rects = []
+    base = datetime.strptime(days[0]["date"], "%Y-%m-%d").date()
+    week_cols = defaultdict(list)
+    for d in days:
+        wk = (datetime.strptime(d["date"], "%Y-%m-%d").date() - base).days // 7
+        week_cols[wk].append(d)
+
+    def color(c):
+        if c == 0: return T["HEAT"][0]
+        if c <= 3: return T["HEAT"][1]
+        if c <= 6: return T["HEAT"][2]
+        if c <= 9: return T["HEAT"][3]
+        return T["HEAT"][4]
+
+    max_weeks = max(week_cols.keys()) + 1 if week_cols else 1
+    for wk in range(max_weeks):
+        for pos, d in enumerate(week_cols.get(wk, [])):
+            rects.append(f'<rect x="{wk*(cell+gap):.1f}" y="{pos*(cell+gap):.1f}" '
+                         f'width="{cell}" height="{cell}" rx="2" fill="{color(d["count"])}"/>')
+    return "".join(rects), max_weeks * (cell + gap)
+
+
+# ─────────────────────────────────────────────
+# CARD 1: STATS (profile-level only)
+# ─────────────────────────────────────────────
+def generate_stats_svg(data, T):
+    w, h = 560, 300
     rank_letter, rank_pct, score = calculate_rank(data)
-    font_css = get_font_style_css(data['name'] + rank_letter + rank_pct)
 
-    # -----------------------------------------------------------------
-    # Layout: a hero "identity + rank" band at the top (the one thing
-    # you're meant to read first), then a single horizontal strip of
-    # secondary metrics as compact stat units underneath, separated by
-    # thin dividers rather than boxes. No competing grid of cards.
-    # -----------------------------------------------------------------
-    score_pct = max(0, min(100, round(score)))
-    ring_r = 38
-    circumference = 2 * 3.14159265 * ring_r
-    offset = circumference * (1 - score_pct / 100)
-    ring_cx, ring_cy = w - 76, 78
+    days = data["days"]
+    weekly [sum(days[i]["count"] for i in range(s, min(s+7, len(days))))
+              for s in range(0, max(1, len(days)-6), 7)]
+    last12 = weekly[-12:] if len(weekly) >= 12 else weekly
+    smax = max(last12) or 1
+    sx, sy sw, sh = 28, 158, 210, 42
+    bw = sw / max(1, len(last12))
+    bars = "".join(
+        f'<rect x="{sx+i*bw+1:.1f}" y="{sy+sh-(v/smax)*sh:.1f}" width="{bw-2:.1f}" '
+        f'height="{(v/smax)*sh:.1f}" rx="1.5" fill="{T["CYAN"]}"/>'
+        for i, v in enumerate(last12))
 
-    hero_bottom = 148
+    pct = max(0, min(100, round(score)))
+    rr, cx, cy = 44, w-78, 95
+    circ = 2 * 3.14159265 * rr
+    offset = circ * (1 - pct/100)
 
+    active_days = sum(1 for d in days if d["count"] > 0)
     metrics = [
-        ("Stars",     data["total_stars"],  CYAN),
-        ("Commits",   data["total_commits"], GREEN),
-        ("PRs",       data["total_prs"],     VIOLET),
-        ("Reviews",   data.get("total_reviews", 0), AMBER),
-        ("Issues",    data["total_issues"],  "#f472b6"),
-        ("Repos",     data["total_repos"],   "#38bdf8"),
+        ("TOTAL STARS",   data["total_stars"],   T["AMBER"],  "across repos"),
+        ("COMM",       data["total_commits"], T["GREEN"],  "last 12 months"),
+        ("PULL REQUESTS", data["total_prs"],     T["VIOLET"], f"{data['total_reviews']} reviews given"),
+        ("FOLLOWERS",     data["followers"],     T["CYAN"],   f"{data['account_age_years']}y on GitHub"),
+        ("PUBLIC REPOS",  data["total_repos"],   T["CYAN"],   f"{data['total_forks']} total forks"),
+        ("ACTIVE DAYS",   active_days,           T["PINK"],   f"of {len(days)} tracked"),
     ]
-    strip_left, strip_right = 28, w - 28
-    n = len(metrics)
-    seg_w = (strip_right - strip_left) / n
-    strip_y = hero_bottom + 56
 
-    strip_cells = []
-    dividers = []
-    for i, (label, val, color) in enumerate(metrics):
-        cx = strip_left + seg_w * i + seg_w / 2
-        strip_cells.append(f"""
-    <rect x="{cx - 10:.1f}" y="{strip_y - 34:.1f}" width="20" height="3" rx="1.5" fill="{color}" />
-    <text x="{cx:.1f}" y="{strip_y - 12:.1f}" font-size="21" font-weight="700" fill="{TEXT}" text-anchor="middle">{val}</text>
-    <text x="{cx:.1f}" y="{strip_y + 6:.1f}" font-size="9.5" letter-spacing="0.4" fill="{MUTED}" text-anchor="middle">{label.upper()}</text>""")
-        if i > 0:
-            dx = strip_left + seg_w * i
-            dividers.append(
-                f'<line x1="{dx:.1f}" y1="{strip_y - 30:.1f}" x2="{dx:.1f}" y2="{strip_y + 10:.1f}" stroke="{BORDER}" stroke-width="1" />'
-            )
-
-    footer_y = h - 30
+    cells = []
+    col_w = (w - 56) / 3
+    for i, (label, val color, sub) in enumerate(metrics):
+        mx = 28 + (i % 3) * col_w
+        my = 246 + (i // 3) * 46
+        cells.append(f"""
+  <rect x="{mx:.0f}" y="{my-8:.0f}" width="3" height="36" rx="1.5" fill="{color}"/>
+  <text x="{mx+12:.0f}" y="{my+4:.0f}" font-size="8.5" letter-spacing="0.6" fill="{T['MUTED']}">{label}</text>
+  <text x="{mx+12:.0f}" y="{my+25:.0f}" font-size="16" font-weight="700" fill="{T['TEXT']}">{val}<tspan font-size="8.5" fill="{T['MUTED']}" dx="6">{sub}</tspan></text>""")
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
-  <style>{font_css}</style>
-  {editor_chrome(w, h, f"~/{data['username']}/stats.json", CYAN)}
-
-  <!-- Hero band: identity on the left, rank ring as the visual anchor on the right -->
-  <text x="28" y="70" font-size="24" font-weight="700" fill="{TEXT}">{data['name']}</text>
-  <text x="28" y="94" font-size="12.5" fill="{MUTED}">{data['username']}</text>
-  <text x="28" y="118" font-size="18" font-weight="700" fill="{CYAN}">{data.get('total_conts', 0)}<tspan font-size="10.5" font-weight="400" fill="{MUTED}"> contributions &#183; {data.get('account_age_years', 0)}y</tspan></text>
-
-  <g transform="translate({ring_cx}, {ring_cy})">
-    <circle cx="0" cy="0" r="{ring_r}" fill="none" stroke="{BORDER}" stroke-width="7" />
-    <circle cx="0" cy="0" r="{ring_r}" fill="none" stroke="{CYAN}" stroke-width="7"
-      stroke-linecap="round" stroke-dasharray="{circumference:.2f}" stroke-dashoffset="{offset:.2f}"
-      transform="rotate(-90)" />
-    <text x="0" y="7" font-size="22" font-weight="700" fill="{TEXT}" text-anchor="middle">{rank_letter}</text>
-  </g>
-  <text x="{ring_cx}" y="{ring_cy + ring_r + 20:.1f}" font-size="9.5" fill="{MUTED}" text-anchor="middle">{rank_pct}</text>
-
-  <line x1="28" y1="{hero_bottom}" x2="{w - 28}" y2="{hero_bottom}" stroke="{BORDER}" stroke-width="1" />
-
-  <!-- Metric strip: one horizontal row, hairline dividers, no boxes -->
-  {"".join(strip_cells)}
-  {"".join(dividers)}
-
-  <line x1="28" y1="{footer_y - 18}" x2="{w - 28}" y2="{footer_y - 18}" stroke="{BORDER}" stroke-width="1" />
-  <text x="28" y="{footer_y}" font-size="10.5" fill="{MUTED}">&#9679; {data.get('followers', 0)} followers</text>
-  <text x="{w - 28}" y="{footer_y}" font-size="10.5" fill="{MUTED}" text-anchor="end">{data.get('total_private', 0)} private &#9679;</text>
+<style>{css(T)}</style>
+{editor_chrome(T, w, h, f"~/{data['username']}/report.md", T['CYAN'])}
+<text x="28" y="72" font-size="22" font-weight="700" fill="{T['TEXT']}">{data['name']}</text>
+<text x="28" y="92" font-size="11.5" fill="{T['CYAN']}">@{data['username']}</text>
+<text x="28" y="124" font-size="27" font-weight="700" fill="{T['TEXT']}">{data['total_conts']}</text>
+<text x="28" y="140" font-size="9" letter-spacing="0.6" fill="{T['MUTED']}">CONTRIBUTIONS &#183; LAST 12 MONTHS</text>
+<g transform="translate({cx}, {cy})">
+  <circle r="{rr}" fill="none" stroke="{T['BORDER']}" stroke-width="7"/>
+  <circle r="{rr}" fill="none" stroke="{T['VIOLET']}" stroke-width="7" stroke-linecap="round"
+    stroke-dasharray="{circ:.2f}" stroke-dashoffset="{offset:.2f}" transform="rotate(-90)"/>
+  <text y="5" font-size="20" font-weight="700" fill="{T['TEXT']}" text-anchor="middle">{rank_letter}</text>
+  <text y="19" font-size="7" letter-spacing="0.5" fill="{T['MUTED']}" text-anchor="middle">{rank_pct}</text>
+</g>
+<text x="28" y="152" font-size="8.5" letter-spacing="0.6" fill="{T['MUTED']}">WEEKLY TREND &#183; LAST 12 WEEKS</text>
+{bars}
+<line x1="28" y1="216" x2="{w-28}" y2="216" stroke="{T['BORDER']}"/>
+{"".join(cells)}
 </svg>"""
 
 
-# ---------------------------------------------------------------------------
-# Card 2: Streak + real contribution heatmap
-# ---------------------------------------------------------------------------
-def heat_color(count):
-    if count <= 0: return HEAT_SCALE[0]
-    if count <= 2: return HEAT_SCALE[1]
-    if count <= 5: return HEAT_SCALE[2]
-    if count <= 9: return HEAT_SCALE[3]
-    return HEAT_SCALE[4]
-
-
-def render_heatmap(days_list, x0, y0, cell=8.2, gap=2.6):
-    """Render an actual GitHub-style weekly contribution grid from real data."""
-    weeks = []
-    week = [None] * 7
-    if days_list:
-        first_weekday = days_list[0]["weekday"]
-        for wd in range(first_weekday):
-            week[wd] = None
-    for d in days_list:
-        wd = d["weekday"]
-        week[wd] = d
-        if wd == 6:
-            weeks.append(week)
-            week = [None] * 7
-    if any(v is not None for v in week):
-        weeks.append(week)
-
-    svg_parts = []
-    for wi, wk in enumerate(weeks):
-        for di, day in enumerate(wk):
-            if day is None:
-                continue
-            cx = x0 + wi * (cell + gap)
-            cy = y0 + di * (cell + gap)
-            color = heat_color(day["count"])
-            svg_parts.append(f'<rect x="{cx:.1f}" y="{cy:.1f}" width="{cell}" height="{cell}" rx="2" fill="{color}" />')
-    width_used = len(weeks) * (cell + gap)
-    return "".join(svg_parts), width_used
-
-
-def generate_streak_svg(data):
-    w, h = 496, 248
+# ─────────────────────────────────────────────
+# CARD 2: STREAK + ACTIVITY RHYTHM
+# ─────────────────────────────────────────────
+def generate_streak_svg(data, T):
+    w, h = 496, 300
     s = calculate_streak(data["days"])
-    font_css = get_font_style_css("streak" + s['curr_range'] + s['long_range'])
+    a = calculate_activity_insights(data["days"])
 
-    heatmap_svg, heat_w = render_heatmap(data["days"], x0=0, y0=0, cell=7.2, gap=2.3)
-    max_w = w - 56
-    scale = min(1.0, max_w / heat_w) if heat_w else 1.0
+    heatmap, heat_w = render_heatmap(T, data["days"])
+    scale = min(1.0, (w - 56) / heat_w) if heat_w else 1.0
 
     legend_x = w - 150
-    legend_cells = "".join(
-        f'<rect x="{legend_x + i*13}" y="0" width="9" height="9" rx="2" fill="{c}" />'
-        for i, c in enumerate(HEAT_SCALE)
-    )
+    legend = "".join(f'<rect x="{legend_x+i*13}" width="9" height="9" rx="2" fill="{c}"/>'
+                     for i, c in enumerate(T["HEAT"]))
+
+    def metric(x, label, value, color, sub):
+        return f"""
+  <text x="{x}" font-size="8.5" letter-spacing="0.6" fill="{T['MUTED']}">{label}</text>
+  <text x="{x}" y="22" font-size="19" font-weight="700" fill="{color}">{value}</text>
+  <text x="{x}" y="37" font-size="8" fill="{T['MUTED']}">{sub}</text>"""
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
-  <style>{font_css}</style>
-  {editor_chrome(w, h, "", GREEN)}
-  <g transform="translate(28, 50) scale({scale:.3f})">
-    {heatmap_svg}
-  </g>
-  <g transform="translate(0, 116)">
-    <text x="28" y="0" font-size="9.5" fill="{MUTED}">less</text>
-    {legend_cells}
-    <text x="{legend_x + 5*13 + 8}" y="8" font-size="9.5" fill="{MUTED}">more</text>
-  </g>
-  <line x1="28" y1="132" x2="{w - 28}" y2="132" stroke="{BORDER}" stroke-width="1" />
-  <g transform="translate(28, 168)">
-    <text x="0" y="0" font-size="10" fill="{MUTED}">CURRENT STREAK</text>
-    <text x="0" y="23" font-size="20" font-weight="700" fill="{GREEN}">{s['current_streak']}<tspan font-size="11" fill="{MUTED}"> days</tspan></text>
-    <text x="0" y="39" font-size="8.5" fill="{MUTED}">{s['curr_range']}</text>
-  </g>
-  <g transform="translate(180, 168)">
-    <text x="0" y="0" font-size="10" fill="{MUTED}">LONGEST STREAK</text>
-    <text x="0" y="23" font-size="20" font-weight="700" fill="{TEXT}">{s['longest_streak']}<tspan font-size="11" fill="{MUTED}"> days</tspan></text>
-    <text x="0" y="39" font-size="8.5" fill="{MUTED}">{s['long_range']}</text>
-  </g>
-  <g transform="translate(360, 168)">
-    <text x="0" y="0" font-size="10" fill="{MUTED}">BEST DAY</text>
-    <text x="0" y="23" font-size="20" font-weight="700" fill="{VIOLET}">{s['best_day_count']}</text>
-    <text x="0" y="39" font-size="8.5" fill="{MUTED}">{s['best_day_date'] or '-'}</text>
-  </g>
-  <text x="28" y="{h - 14}" font-size="9" fill="{MUTED}">{s['total_active']} active days &#183; avg {s['avg_per_active_day']}/day</text>
+<style>{css(T)}</style>
+{editor_chrome, w, h, f"~/{data['username']}/streak.log", T['GREEN'])}
+<g transform="translate(28, 50) scale({scale:.3f})">{heatmap}</g>
+<g transform="translate(0, 118)">
+  <text x="28" font-size="9" fill="{T['MUTED']}">less</text>
+  {legend}
+  <text x="{legend_x + 5*13 + 8}" y="8" font-size="9" fill="{T['MUTED']}">more</text>
+</g>
+<line x1="28" y1="136" x2="{w-28}" y2="136" stroke="{T['BORDER']}"/>
+<g transform="translate(28, 168)">
+  {metric(0,   "LONGEST STREAK",  s['longest_streak'], T['TEXT'],   s['long_range'])  {metric(150, "LONGEST GAP",     a['longest_gap'],    T['RED'],    "days without activity")}
+  {metric(300, "CURRENT STREAK",  s['current_streak'], T['GREEN'],  s['curr_range'])}
+</g>
+<line x1="28" y1="212" x2="{w-28}" y2="212" stroke="{T['BORDER']}"/>
+<g transform="translate(28, 244)">
+  {metric(0,   "BUSIEST DAY",      s['best_day_count'], T['VIOLET'], s['best_day_date'] or '-')}
+  {metric(150, "BUSIEST MONTH",    a['busiest_month'],  T['CYAN'],   f"{a['busiest_month_count']} contributions")}
+  {metric(300, "WEEKEND ACTIVITY", a['weekend_pct'],    T['AMBER'],  f"peak: {a['top_weekday']}")}
+</g>
+<text x="28" y="{h-12}" font-size="8.5" fill="{T['MUTED']}">{s['total_active']} active days &#183; avg {s['avg_per_active_day']}/day &#183; last 12 months</text>
 </svg>"""
 
 
-# ---------------------------------------------------------------------------
-# Card 3: Languages + top repos
-# ---------------------------------------------------------------------------
-def generate_langs_svg(data):
+# ─────────────────────────────────────────────
+# CARD 3: LANGUAGES (real repo data)
+# ─────────────────────────────────────────────
+def generate_langs_svg(data, T):
     w, h = 496, 280
-    langs = sorted(data["languages"].items(), key=lambda x: x[1]["size"], reverse=True)[:6]
-    total = sum(i["size"] for _, i in langs) or 1
-    font_css = get_font_style_css("langs" + "".join(n for n, _ in langs))
+    langs = sorted(data["langs"].items(), key=lambda x: x[1], reverse=True)
+    total = sum(v for _, v in langs.values()) if False else sum(v for _, v in langs)
+    top = langs[:5]
+    other = sum(v for _, v in langs[5:])
+    if other > 0:
+        top.append(("Other", other))
 
-    bar_x, bar_y, bar_w = 28, 48, w - 56
-    rects, curr_x = [], bar_x
-    legend = []
-    for idx, (name, info) in enumerate(langs):
-        pct = info["size"] / total
-        seg_w = pct * bar_w
-        rects.append(f'<rect x="{curr_x:.1f}" y="{bar_y}" width="{max(seg_w, 1):.1f}" height="10" fill="{info["color"]}" />')
-        curr_x += seg_w
-        col = idx % 2
-        row = idx // 2
-        lx = 28 + col * 235
-        ly = 84 + row * 22
-        legend.append(
-            f'<rect x="{lx}" y="{ly - 9}" width="8" height="8" rx="2" fill="{info["color"]}" />'
-            f'<text x="{lx + 14}" y="{ly}" font-size="11.5" fill="{TEXT}">{name}</text>'
-            f'<text x="{lx + 215}" y="{ly}" font-size="10.5" fill="{MUTED}" text-anchor="end">{pct*100:.1f}%</text>'
-        )
+    bar_y, bar_x, bar_w, bar_h = 66, 28, w - 56, 14
+    segs, xoff = [], bar_x
+    for name, v in top:
+        seg_w = (v / total) * bar_w
+        color = LANG_COLORS.get(name, "#8b949e")
+        segs.append(f'<rect x="{xoff:.1f}" y="{bar_y}" width="{seg_w:.1f}" height="{bar_h}" fill="{color}"/>')
+        xoff += seg_w
 
-    top_repos = data.get("top_repos", [])[:3]
-    repo_rows = []
-    ry = 214
-    for r in top_repos:
-        lang = (r.get("primaryLanguage") or {}) or {}
-        lname = lang.get("name", "-")
-        lcolor = lang.get("color") or MUTED
-        repo_rows.append(f"""
-    <circle cx="34" cy="{ry - 4}" r="3.5" fill="{lcolor}" />
-    <text x="46" y="{ry}" font-size="11.5" fill="{TEXT}">{r['name']}</text>
-    <text x="{w - 28}" y="{ry}" font-size="11" fill="{AMBER}" text-anchor="end">&#9733; {r['stargazerCount']}</text>
-    <text x="{w - 78}" y="{ry}" font-size="11" fill="{MUTED}" text-anchor="end">fork {r['forkCount']}</text>""")
-        ry += 20
+    items = []
+    col_w = (w - 56) / 3
+    for i, (name, v) in enumerate(top):
+        ix = 28 + (i % 3) * col_w
+        iy = 130 + (i // 3) * 44
+        pct = round(v / total * 100, 1)
+        items.append(f"""
+  <circle cx="{ix+5:.0f}" cy="{iy-4:.0f}" r="4" fill="{LANG_COLORS.get(name, '#8b949e')}"/>
+  <text x="{ix+16:.0f}" y="{iy:.0f}" font-size="10.5" fill="{T['TEXT']}">{name}</text>
+  <text x="{ix+16:.0f}" y="{iy+14:.0f}" font-size="8.5" fill="{T['MUTED']}">{pct}%</text>""")
+
+    commit_share = round(data["total_commits"] / max(1, data["total_conts"]) * 100)
+    pr_share = round(data["total_prs"] / max(1, data["total_conts"]) * 100)
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
-  <style>{font_css}</style>
-  {editor_chrome(w, h, "", VIOLET)}
-  <rect x="{bar_x}" y="{bar_y}" width="{bar_w}" height="10" rx="5" fill="{BORDER}" />
-  <clipPath id="barclip"><rect x="{bar_x}" y="{bar_y}" width="{bar_w}" height="10" rx="5" /></clipPath>
-  <g clip-path="url(#barclip)">{"".join(rects)}</g>
-  {"".join(legend)}
-  <line x1="28" y1="176" x2="{w - 28}" y2="176" stroke="{BORDER}" stroke-width="1" />
-  <text x="28" y="194" font-size="10" fill="{MUTED}" letter-spacing="0.4">&#9733; PINNED</text>
-  {"".join(repo_rows)}
+<style>{css(T)}</style>
+{editor_chrome(T, w, h, f"~/{data['username']}/languages.json", T['VIOLET'])}
+<text x="28" y="52" font-size="12" font-weight="700" fill="{T['TEXT']}">Languages across {data['total_repos']} public repos</text>
+{"".join(segs)}
+<rect x="{bar_x}" y="{bar_y}" width="{bar_w}" height="{bar_h}" rx="3" fill="none" stroke="{T['BORDER']}"/>
+{"".join(items)}
+<line x1="28" y1="222" x2="{w-28}" y2="222" stroke="{T['BORDER']}"/>
+<text x="28" y="248" font-size="9" fill="{T['MUTED']}">Contribution mix</text>
+<text x="150" y="248" font-size="9." fill="{T['GREEN']}">&#9679; {commit_share}% commits>
+<text x="290" y="248" font-size="9.5" fill="{T['VIOLET']}">&#9679; {pr_share}% pull requests</text>
+<text x="28" y="{h-12}" font-size="8.5" fill="{T['MUTED']}">Based on primary language of owned, non-forked repositories</text>
 </svg>"""
 
 
+# ─────────────────────────────────────────────
+# ERROR STATE
+# ─────────────────────────────────────────────
+def render_error_svg(filename, T, w, h, title):
+    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
+<style>{css(T)}</style>
+{editor_chrome(T, w, h, title, T['RED'])}
+<text x="{w/2}"="{h/2}" font-size="13" fill="{T['RED']}" text-anchor="middle">API unavailable &#8212; stats could not be fetched</text>
+<text x="{w/2}" y="{h/2+22}" font-size="10" fill="{T['MUTED']}" text-anchor="middle">will retry on next scheduled run</text>
+</svg>"""
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(svg)
+
+
+# ─────────────────────────────────────────────
+# MAIN — generates dark AND light versions
+# ─────────────────────────────────────────────
 def main():
     data = fetch_github_stats()
-    with open("stats.svg", "w", encoding="utf-8") as f:
-        f.write(generate_stats_svg(data))
-    with open("streak.svg", "w", encoding="utf-8") as f:
-        f.write(generate_streak_svg(data))
-    with open("langs.svg", "w", encoding="utf-8") as f:
-        f.write(generate_langs_svg(data))
-    print("Stats SVGs generated successfully!")
+    cards = [("stats.svg", 560, 300, generate_stats_svg, "~/report.md"),
+             ("streak.svg", 496, 300, generate_streak_svg, "~/streak.log"),
+             ("langs.svg", 496, 280, generate_langs_svg, "~/languages.json")]
+
+    for theme_name, in THEMES.items():
+        suffix = "" if theme_name == "dark" else "-light"
+        for base, w, h, fn, title in cards:
+            fname = base.replace(".svg", f"{suffix}.svg")
+            if data is None:
+                render_error_svg(fname, T, w, h, title)
+            else:
+                with open(fname, "w", encoding="utf-8") as f:
+                    f.write(fn(data, T))
+            print(f"wrote {fname}")
+
+    print("Done!" if data else "Done with error states (no fake data).")
 
 
 if __name__ == "__main__":
