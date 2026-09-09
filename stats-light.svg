@@ -9,8 +9,8 @@
   <circle cx="544" cy="15.5" r="3.5" fill="#0969da"/>
 <text x="28" y="72" font-size="22" font-weight="700" fill="#1f2328">Hiten Sharma</text>
 <text x="28" y="92" font-size="11.5" font-weight="700" fill="#0969da">@Hiten1896</text>
-<text x="28" y="124" font-size="27" font-weight="700" fill="#1f2328">1065</text>
-<text x="28" y="140" font-size="9.5" font-weight="700" letter-spacing="0.5" fill="#1f2328">CONTRIBUTIONS &#183; LAST 12 MONTHS</text>
+<text x="28" y="124" font-size="27" font-weight="700" fill="#1f2328">1067</text>
+<text x="28" y="140" font-size="10.5" font-weight="800" letter-spacing="0.3" fill="#1f2328">CONTRIBUTIONS &#183; LAST 12 MONTHS</text>
 <g transform="translate(482, 95)">
   <circle r="44" fill="none" stroke="#d0d7de" stroke-width="7"/>
   <circle r="44" fill="none" stroke="#8250df" stroke-width="7" stroke-linecap="round"
@@ -18,32 +18,32 @@
   <text y="5" font-size="20" font-weight="700" fill="#1f2328" text-anchor="middle">S</text>
   <text y="19" font-size="7" letter-spacing="0.5" fill="#656d76" text-anchor="middle">TOP 2%</text>
 </g>
-<text x="28" y="152" font-size="8.5" font-weight="700" letter-spacing="0.5" fill="#1f2328">WEEKLY TREND &#183; LAST 12 WEEKS</text>
+<text x="28" y="152" font-size="9.5" font-weight="800" letter-spacing="0.3" fill="#1f2328">WEEKLY TREND &#183; LAST 12 WEEKS</text>
 <rect x="29.0" y="197.8" width="15.5" height="2.2" rx="1.5" fill="#0969da"/><rect x="46.5" y="198.4" width="15.5" height="1.6" rx="1.5" fill="#0969da"/><rect x="64.0" y="197.8" width="15.5" height="2.2" rx="1.5" fill="#0969da"/><rect x="81.5" y="197.8" width="15.5" height="2.2" rx="1.5" fill="#0969da"/><rect x="99.0" y="198.0" width="15.5" height="2.0" rx="1.5" fill="#0969da"/><rect x="116.5" y="190.3" width="15.5" height="9.7" rx="1.5" fill="#0969da"/><rect x="134.0" y="199.1" width="15.5" height="0.9" rx="1.5" fill="#0969da"/><rect x="151.5" y="198.4" width="15.5" height="1.6" rx="1.5" fill="#0969da"/><rect x="169.0" y="194.8" width="15.5" height="5.2" rx="1.5" fill="#0969da"/><rect x="186.5" y="158.0" width="15.5" height="42.0" rx="1.5" fill="#0969da"/><rect x="204.0" y="168.8" width="15.5" height="31.2" rx="1.5" fill="#0969da"/><rect x="221.5" y="195.3" width="15.5" height="4.7" rx="1.5" fill="#0969da"/>
 <line x1="28" y1="216" x2="532" y2="216" stroke="#d0d7de"/>
 
   <rect x="28" y="238" width="3" height="36" rx="1.5" fill="#9a6700"/>
-    <text x="40" y="250" font-size="9.5" font-weight="700" letter-spacing="0.5" fill="#1f2328">TOTAL STARS</text>
+    <text x="40" y="250" font-size="10.5" font-weight="800" letter-spacing="0.3" fill="#1f2328">TOTAL STARS</text>
     <text x="40" y="271" font-size="19" font-weight="700" fill="#1f2328">13</text>
     <text x="40" y="283" font-size="8" fill="#656d76">across repos</text>
   <rect x="196" y="238" width="3" height="36" rx="1.5" fill="#1a7f37"/>
-    <text x="208" y="250" font-size="9.5" font-weight="700" letter-spacing="0.5" fill="#1f2328">COMMITS</text>
-    <text x="208" y="271" font-size="19" font-weight="700" fill="#1f2328">550</text>
+    <text x="208" y="250" font-size="10.5" font-weight="800" letter-spacing="0.3" fill="#1f2328">COMMITS</text>
+    <text x="208" y="271" font-size="19" font-weight="700" fill="#1f2328">552</text>
     <text x="208" y="283" font-size="8" fill="#656d76">last 12 months</text>
   <rect x="364" y="238" width="3" height="36" rx="1.5" fill="#8250df"/>
-    <text x="376" y="250" font-size="9.5" font-weight="700" letter-spacing="0.5" fill="#1f2328">PULL REQUESTS</text>
+    <text x="376" y="250" font-size="10.5" font-weight="800" letter-spacing="0.3" fill="#1f2328">PULL REQUESTS</text>
     <text x="376" y="271" font-size="19" font-weight="700" fill="#1f2328">9</text>
     <text x="376" y="283" font-size="8" fill="#656d76">1 reviews given</text>
   <rect x="28" y="280" width="3" height="36" rx="1.5" fill="#0969da"/>
-    <text x="40" y="292" font-size="9.5" font-weight="700" letter-spacing="0.5" fill="#1f2328">FOLLOWERS</text>
+    <text x="40" y="292" font-size="10.5" font-weight="800" letter-spacing="0.3" fill="#1f2328">FOLLOWERS</text>
     <text x="40" y="313" font-size="19" font-weight="700" fill="#1f2328">7</text>
     <text x="40" y="325" font-size="8" fill="#656d76">1.2y on GitHub</text>
   <rect x="196" y="280" width="3" height="36" rx="1.5" fill="#0969da"/>
-    <text x="208" y="292" font-size="9.5" font-weight="700" letter-spacing="0.5" fill="#1f2328">PUBLIC REPOS</text>
+    <text x="208" y="292" font-size="10.5" font-weight="800" letter-spacing="0.3" fill="#1f2328">PUBLIC REPOS</text>
     <text x="208" y="313" font-size="19" font-weight="700" fill="#1f2328">7</text>
     <text x="208" y="325" font-size="8" fill="#656d76">0 total forks</text>
   <rect x="364" y="280" width="3" height="36" rx="1.5" fill="#bf3989"/>
-    <text x="376" y="292" font-size="9.5" font-weight="700" letter-spacing="0.5" fill="#1f2328">ACTIVE DAYS</text>
+    <text x="376" y="292" font-size="10.5" font-weight="800" letter-spacing="0.3" fill="#1f2328">ACTIVE DAYS</text>
     <text x="376" y="313" font-size="19" font-weight="700" fill="#1f2328">271</text>
     <text x="376" y="325" font-size="8" fill="#656d76">of 366 tracked</text>
 </svg>
