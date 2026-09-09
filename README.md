@@ -124,12 +124,12 @@ A sleek web application for movie searching, tracking streaming and music availa
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./stats.svg" />
     <source media="(prefers-color-scheme: light)" srcset="./stats-light.svg" />
-    <img src="./stats.svg" alt="GitHub Stats" width="49%" />
+    <img src="./stats.svg" alt="GitHub Stats" width="100%" />
   </picture>
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./langs.svg" />
     <source media="(prefers-color-scheme: light)" srcset="./langs-light.svg" />
-    <img src="./langs.svg" alt="Top Languages" width="49%" />
+    <img src="./langs.svg" alt="Top Languages" width="100%" />
   </picture>
 </p>
 

@@ -276,7 +276,7 @@ def render_heatmap(T, days, cell=7.2, gap=2.3):
 # CARD 1: STATS (profile-level only)
 # ─────────────────────────────────────────────
 def generate_stats_svg(data, T):
-    w, h = 560, 340
+    w, h = 560, 360
     rank_letter, rank_pct, score = calculate_rank(data)
 
     days = data["days"]
@@ -298,12 +298,12 @@ def generate_stats_svg(data, T):
 
     active_days = sum(1 for d in days if d["count"] > 0)
     metrics = [
-        ("TOTAL STARS",   data["total_stars"],   T["AMBER"],  "repos"),
-        ("COMMITS",       data["total_commits"], T["GREEN"],  "12-month total"),
-        ("PULL REQUESTS", data["total_prs"],     T["VIOLET"], f"{data['total_reviews']} reviews"),
+        ("TOTAL STARS",   data["total_stars"],   T["AMBER"],  "across repos"),
+        ("COMMITS",       data["total_commits"], T["GREEN"],  "last 12 months"),
+        ("PULL REQUESTS", data["total_prs"],     T["VIOLET"], f"{data['total_reviews']} reviews given"),
         ("FOLLOWERS",     data["followers"],     T["CYAN"],   f"{data['account_age_years']}y on GitHub"),
-        ("PUBLIC REPOS",  data["total_repos"],   T["CYAN"],   f"{data['total_forks']} forks"),
-        ("ACTIVE DAYS",   active_days,           T["PINK"],   f"of {len(days)} days"),
+        ("PUBLIC REPOS",  data["total_repos"],   T["CYAN"],   f"{data['total_forks']} total forks"),
+        ("ACTIVE DAYS",   active_days,           T["PINK"],   f"of {len(days)} tracked"),
     ]
 
     cells = []
@@ -313,8 +313,9 @@ def generate_stats_svg(data, T):
         my = 246 + (i // 3) * 42
         cells.append(f"""
   <rect x="{mx:.0f}" y="{my-8:.0f}" width="3" height="36" rx="1.5" fill="{color}"/>
-    <text x="{mx+12:.0f}" y="{my+4:.0f}" font-size="9" font-weight="700" letter-spacing="0.4" fill="{T['TEXT']}">{label}</text>
-    <text x="{mx+12:.0f}" y="{my+25:.0f}" font-size="16" font-weight="700" fill="{T['TEXT']}">{val}<tspan font-size="8.5" font-weight="600" fill="{T['MUTED']}" dx="6">{sub}</tspan></text>""")
+    <text x="{mx+12:.0f}" y="{my+4:.0f}" font-size="9.5" font-weight="700" letter-spacing="0.5" fill="{T['TEXT']}">{label}</text>
+    <text x="{mx+12:.0f}" y="{my+25:.0f}" font-size="19" font-weight="700" fill="{T['TEXT']}">{val}</text>
+    <text x="{mx+12:.0f}" y="{my+37:.0f}" font-size="8" fill="{T['MUTED']}">{sub}</text>""")
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
 <style>{css(T)}</style>
@@ -322,7 +323,7 @@ def generate_stats_svg(data, T):
 <text x="28" y="72" font-size="22" font-weight="700" fill="{T['TEXT']}">{data['name']}</text>
 <text x="28" y="92" font-size="11.5" font-weight="700" fill="{T['CYAN']}">@{data['username']}</text>
 <text x="28" y="124" font-size="27" font-weight="700" fill="{T['TEXT']}">{data['total_conts']}</text>
-<text x="28" y="140" font-size="9" font-weight="700" letter-spacing="0.5" fill="{T['TEXT']}">CONTRIBUTIONS &#183; LAST 12 MONTHS</text>
+<text x="28" y="140" font-size="9.5" font-weight="700" letter-spacing="0.5" fill="{T['TEXT']}">CONTRIBUTIONS &#183; LAST 12 MONTHS</text>
 <g transform="translate({cx}, {cy})">
   <circle r="{rr}" fill="none" stroke="{T['BORDER']}" stroke-width="7"/>
   <circle r="{rr}" fill="none" stroke="{T['VIOLET']}" stroke-width="7" stroke-linecap="round"
