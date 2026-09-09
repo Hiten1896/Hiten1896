@@ -14,7 +14,7 @@ from collections import defaultdict
 # ─────────────────────────────────────────────
 # CONFIG
 # ─────────────────────────────────────────────
-GITHUB_TOKEN = os.getenvGITHUB_TOKEN")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 USERNAME = os.getenv("GITHUB_USER", "Hiten1896")
 API_URL = "https://api.github.com/graphql"
 
@@ -43,7 +43,7 @@ THEMES = {
         "BORDER": "#d0d7de",
         "TEXT":   "#1f2328",
         "MUTED":  "#656d76",
-        "GREEN":  "#17f37",
+        "GREEN":  "#1a7f37",
         "RED":    "#cf222e",
         "CYAN":   "#0969da",
         "VIOLET": "#8250df",
@@ -108,9 +108,10 @@ def fetch_github_stats():
           totalCommitContributions
           totalPullRequestContributions
           totalPullRequestReviewContributions
+          totalIssueContributions
           totalContributions
           contributionCalendar {{
-           Contributions
+           totalContributions
             weeks {{
               contributionDays {{ date contributionCount weekday }}
             }}
@@ -125,7 +126,7 @@ def fetch_github_stats():
             headers={"Authorization": f"Bearer {GITHUB_TOKEN}"}, timeout=30)
         resp.raise_for_status()
         result = resp.json()
-        if "errors" result or result.get("data", {}).get("user") is None:
+        if "errors" in result or result.get("data", {}).get("user") is None:
             print(f"GraphQL error: {result.get('errors')}")
             return None
         return parse_graphql_response(result["data"]["user"])
@@ -149,12 +150,12 @@ def parse_graphql_response(user):
     lang = defaultdict(int)
     for r in repos:
         if r.get("primaryLanguage") and r["primaryLanguage"].get("name"):
-            lang_count[r["primaryLanguage"]["name"]] += 1
+            lang[r["primaryLanguage"]["name"]] += 1
 
     return {
         "name": user.get("name") or USERNAME,
         "username": USERNAME,
-        "followers":["followers"]["totalCount"],
+        "followers": user["followers"]["totalCount"],
         "total_repos": user["repositories"]["totalCount"],
         "total_stars": sum(r["stargazerCount"] for r in repos),
         "total_forks": sum(r["forkCount"] for r in repos),
@@ -165,7 +166,7 @@ def parse_graphql_response(user):
         "total_issues": user["contributionsCollection"]["totalIssueContributions"],
         "total_conts": user["contributionsCollection"]["contributionCalendar"]["totalContributions"],
         "days": days,
-        "langs": lang_count,
+        "langs": lang,
     }
 
 
@@ -174,7 +175,7 @@ def parse_graphql_response(user):
 # ─────────────────────────────────────────────
 def calculate_rank(data):
     total = data["total_conts"]
-    active = sum(1 for d in data[""] if d["count"] > 0)
+    active = sum(1 for d in data["days"] if d["count"] > 0)
     score = min(100, (total / 20) + (active / 3.65))
     if score >= 85: return "S", "TOP 2%",  score
     if score >= 70: return "A", "TOP 8%",  score
@@ -201,7 +202,8 @@ def calculate_streak(days):
     for i, d in enumerate(days):
         run = run + 1 if d["count"] > 0 else 0
         if run == longest:
-            longest_end = i    if longest_end is not None and longest > 0:
+            longest_end = i
+    if longest_end is not None and longest > 0:
         s = datetime.strptime(days[longest_end - longest + 1]["date"], "%Y-%m-%d")
         e = datetime.strptime(days[longest_end]["date"], "%Y-%m-%d")
         long_range = f"{s.strftime('%d %b')} \u2192 {e.strftime('%d %b')}"
@@ -220,7 +222,7 @@ def calculate_streak(days):
     return {"current_streak": current, "longest_streak": longest,
             "long_range": long_range, "curr_range": curr_range,
             "best_day_count": best["count"], "best_day_date": best_date,
-            "total_active": active_days,avg_per_active_day": avg}
+            "total_active": active_days, "avg_per_active_day": avg}
 
 
 def calculate_activity_insights(days):
@@ -230,12 +232,13 @@ def calculate_activity_insights(days):
         max_gap = max(max_gap, curr_gap)
 
     all_total = sum(d["count"] for d in days) or 1
-    weekend_pct = round(sum(d["count"] for d in days d["weekday"] in (0, 6)) / all_total * 100)
+    weekend_pct = round(sum(d["count"] for d in days if d["weekday"] in (0, 6)) / all_total * 100)
 
     month_totals = defaultdict(int)
     for d in days:
         month_totals[d["date"][:7]] += d["count"]
-    busiest_name, busiest_count = "-", 0    if month_totals:
+    busiest_name, busiest_count = "-", 0
+    if month_totals:
         mk, busiest_count = max(month_totals.items(), key=lambda x: x[1])
         busiest_name = datetime.strptime(mk, "%Y-%m").strftime("%B")
 
@@ -281,11 +284,11 @@ def generate_stats_svg(data, T):
     rank_letter, rank_pct, score = calculate_rank(data)
 
     days = data["days"]
-    weekly [sum(days[i]["count"] for i in range(s, min(s+7, len(days))))
+    weekly = [sum(days[i]["count"] for i in range(s, min(s+7, len(days))))
               for s in range(0, max(1, len(days)-6), 7)]
     last12 = weekly[-12:] if len(weekly) >= 12 else weekly
     smax = max(last12) or 1
-    sx, sy sw, sh = 28, 158, 210, 42
+    sx, sy, sw, sh = 28, 158, 210, 42
     bw = sw / max(1, len(last12))
     bars = "".join(
         f'<rect x="{sx+i*bw+1:.1f}" y="{sy+sh-(v/smax)*sh:.1f}" width="{bw-2:.1f}" '
@@ -309,7 +312,7 @@ def generate_stats_svg(data, T):
 
     cells = []
     col_w = (w - 56) / 3
-    for i, (label, val color, sub) in enumerate(metrics):
+    for i, (label, val, color, sub) in enumerate(metrics):
         mx = 28 + (i % 3) * col_w
         my = 246 + (i // 3) * 46
         cells.append(f"""
@@ -361,7 +364,7 @@ def generate_streak_svg(data, T):
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
 <style>{css(T)}</style>
-{editor_chrome, w, h, f"~/{data['username']}/streak.log", T['GREEN'])}
+{editor_chrome(T, w, h, f"~/{data['username']}/streak.log", T['GREEN'])}
 <g transform="translate(28, 50) scale({scale:.3f})">{heatmap}</g>
 <g transform="translate(0, 118)">
   <text x="28" font-size="9" fill="{T['MUTED']}">less</text>
@@ -370,7 +373,8 @@ def generate_streak_svg(data, T):
 </g>
 <line x1="28" y1="136" x2="{w-28}" y2="136" stroke="{T['BORDER']}"/>
 <g transform="translate(28, 168)">
-  {metric(0,   "LONGEST STREAK",  s['longest_streak'], T['TEXT'],   s['long_range'])  {metric(150, "LONGEST GAP",     a['longest_gap'],    T['RED'],    "days without activity")}
+    {metric(0,   "LONGEST STREAK",  s['longest_streak'], T['TEXT'],   s['long_range'])}
+    {metric(150, "LONGEST GAP",     a['longest_gap'],    T['RED'],    "days without activity")}
   {metric(300, "CURRENT STREAK",  s['current_streak'], T['GREEN'],  s['curr_range'])}
 </g>
 <line x1="28" y1="212" x2="{w-28}" y2="212" stroke="{T['BORDER']}"/>
@@ -389,7 +393,7 @@ def generate_streak_svg(data, T):
 def generate_langs_svg(data, T):
     w, h = 496, 280
     langs = sorted(data["langs"].items(), key=lambda x: x[1], reverse=True)
-    total = sum(v for _, v in langs.values()) if False else sum(v for _, v in langs)
+    total = sum(v for _, v in langs)
     top = langs[:5]
     other = sum(v for _, v in langs[5:])
     if other > 0:
@@ -426,7 +430,7 @@ def generate_langs_svg(data, T):
 {"".join(items)}
 <line x1="28" y1="222" x2="{w-28}" y2="222" stroke="{T['BORDER']}"/>
 <text x="28" y="248" font-size="9" fill="{T['MUTED']}">Contribution mix</text>
-<text x="150" y="248" font-size="9." fill="{T['GREEN']}">&#9679; {commit_share}% commits>
+<text x="150" y="248" font-size="9.5" fill="{T['GREEN']}">&#9679; {commit_share}% commits</text>
 <text x="290" y="248" font-size="9.5" fill="{T['VIOLET']}">&#9679; {pr_share}% pull requests</text>
 <text x="28" y="{h-12}" font-size="8.5" fill="{T['MUTED']}">Based on primary language of owned, non-forked repositories</text>
 </svg>"""
@@ -439,7 +443,7 @@ def render_error_svg(filename, T, w, h, title):
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
 <style>{css(T)}</style>
 {editor_chrome(T, w, h, title, T['RED'])}
-<text x="{w/2}"="{h/2}" font-size="13" fill="{T['RED']}" text-anchor="middle">API unavailable &#8212; stats could not be fetched</text>
+<text x="{w/2}" y="{h/2}" font-size="13" fill="{T['RED']}" text-anchor="middle">API unavailable &#8212; stats could not be fetched</text>
 <text x="{w/2}" y="{h/2+22}" font-size="10" fill="{T['MUTED']}" text-anchor="middle">will retry on next scheduled run</text>
 </svg>"""
     with open(filename, "w", encoding="utf-8") as f:
@@ -455,7 +459,7 @@ def main():
              ("streak.svg", 496, 300, generate_streak_svg, "~/streak.log"),
              ("langs.svg", 496, 280, generate_langs_svg, "~/languages.json")]
 
-    for theme_name, in THEMES.items():
+    for theme_name, T in THEMES.items():
         suffix = "" if theme_name == "dark" else "-light"
         for base, w, h, fn, title in cards:
             fname = base.replace(".svg", f"{suffix}.svg")

@@ -92,7 +92,7 @@ A digital forensics suite built with React and Firebase designed to detect AI-ge
 
 | Stack | Scale | Performance | Security | Impact | Repository |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| React.js, Firebase, Vercel | Web Application | Optimized client-side processing | Client & Firebase Auth Rules | Media Authenticity Verification | [Hiten1896/TrustGuard](https://github.com/Hiten1896) |
+  | React.js, Firebase, Vercel | Web Application | Optimized client-side processing | Client & Firebase Auth Rules | Media Authenticity Verification | [Hiten1896/TrustGuard](https://github.com/Hiten1896/TrustGuard) |
 
 *   **Engineering Highlights:**
     *   Designed modular file processing pipelines for metadata Extraction and Deepfake detection.
@@ -108,7 +108,7 @@ A sleek web application for movie searching, tracking streaming and music availa
 
 | Stack | Scale | Performance | Security | Impact | Repository |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| JavaScript, TMDB API, HTML5/CSS3 | Single Page Web App | Async API fetching with minimal latency | Encrypted environment API keys | Simplified discovery for users | [Hiten1896/Movie-Hunt](https://github.com/Hiten1896) |
+  | JavaScript, TMDB API, HTML5/CSS3 | Single Page Web App | Async API fetching with minimal latency | Encrypted environment API keys | Simplified discovery for users | [Hiten1896/Movie-Hunt](https://github.com/Hiten1896/Movie-Hunt) |
 
 * **Engineering Highlights:**
   * Developed asynchronous API integration for real-time movie and music availability fetching.
@@ -146,7 +146,7 @@ A sleek web application for movie searching, tracking streaming and music availa
 ### 🗓 Contribution Activity
 
 <p align="center">
-  <img src="./year.svg" alt="Contribution Graph"="100%" />
+  <img src="./year.svg" alt="Contribution Graph" width="100%" />
 </p>
 
 ---
