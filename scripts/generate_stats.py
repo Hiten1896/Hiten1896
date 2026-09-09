@@ -298,12 +298,12 @@ def generate_stats_svg(data, T):
 
     active_days = sum(1 for d in days if d["count"] > 0)
     metrics = [
-        ("TOTAL STARS",   data["total_stars"],   T["AMBER"],  "across repos"),
-        ("COMM",       data["total_commits"], T["GREEN"],  "last 12 months"),
-        ("PULL REQUESTS", data["total_prs"],     T["VIOLET"], f"{data['total_reviews']} reviews given"),
+        ("TOTAL STARS",   data["total_stars"],   T["AMBER"],  "repos"),
+        ("COMMITS",       data["total_commits"], T["GREEN"],  "12-month total"),
+        ("PULL REQUESTS", data["total_prs"],     T["VIOLET"], f"{data['total_reviews']} reviews"),
         ("FOLLOWERS",     data["followers"],     T["CYAN"],   f"{data['account_age_years']}y on GitHub"),
-        ("PUBLIC REPOS",  data["total_repos"],   T["CYAN"],   f"{data['total_forks']} total forks"),
-        ("ACTIVE DAYS",   active_days,           T["PINK"],   f"of {len(days)} tracked"),
+        ("PUBLIC REPOS",  data["total_repos"],   T["CYAN"],   f"{data['total_forks']} forks"),
+        ("ACTIVE DAYS",   active_days,           T["PINK"],   f"of {len(days)} days"),
     ]
 
     cells = []
@@ -313,16 +313,16 @@ def generate_stats_svg(data, T):
         my = 246 + (i // 3) * 42
         cells.append(f"""
   <rect x="{mx:.0f}" y="{my-8:.0f}" width="3" height="36" rx="1.5" fill="{color}"/>
-  <text x="{mx+12:.0f}" y="{my+4:.0f}" font-size="8.5" letter-spacing="0.6" fill="{T['MUTED']}">{label}</text>
-  <text x="{mx+12:.0f}" y="{my+25:.0f}" font-size="16" font-weight="700" fill="{T['TEXT']}">{val}<tspan font-size="8.5" fill="{T['MUTED']}" dx="6">{sub}</tspan></text>""")
+    <text x="{mx+12:.0f}" y="{my+4:.0f}" font-size="9" font-weight="700" letter-spacing="0.4" fill="{T['TEXT']}">{label}</text>
+    <text x="{mx+12:.0f}" y="{my+25:.0f}" font-size="16" font-weight="700" fill="{T['TEXT']}">{val}<tspan font-size="8.5" font-weight="600" fill="{T['MUTED']}" dx="6">{sub}</tspan></text>""")
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
 <style>{css(T)}</style>
 {editor_chrome(T, w, h, f"~/{data['username']}/report.md", T['CYAN'])}
 <text x="28" y="72" font-size="22" font-weight="700" fill="{T['TEXT']}">{data['name']}</text>
-<text x="28" y="92" font-size="11.5" fill="{T['CYAN']}">@{data['username']}</text>
+<text x="28" y="92" font-size="11.5" font-weight="700" fill="{T['CYAN']}">@{data['username']}</text>
 <text x="28" y="124" font-size="27" font-weight="700" fill="{T['TEXT']}">{data['total_conts']}</text>
-<text x="28" y="140" font-size="9" letter-spacing="0.6" fill="{T['MUTED']}">CONTRIBUTIONS &#183; LAST 12 MONTHS</text>
+<text x="28" y="140" font-size="9" font-weight="700" letter-spacing="0.5" fill="{T['TEXT']}">CONTRIBUTIONS &#183; LAST 12 MONTHS</text>
 <g transform="translate({cx}, {cy})">
   <circle r="{rr}" fill="none" stroke="{T['BORDER']}" stroke-width="7"/>
   <circle r="{rr}" fill="none" stroke="{T['VIOLET']}" stroke-width="7" stroke-linecap="round"
@@ -330,7 +330,7 @@ def generate_stats_svg(data, T):
   <text y="5" font-size="20" font-weight="700" fill="{T['TEXT']}" text-anchor="middle">{rank_letter}</text>
   <text y="19" font-size="7" letter-spacing="0.5" fill="{T['MUTED']}" text-anchor="middle">{rank_pct}</text>
 </g>
-<text x="28" y="152" font-size="8.5" letter-spacing="0.6" fill="{T['MUTED']}">WEEKLY TREND &#183; LAST 12 WEEKS</text>
+<text x="28" y="152" font-size="8.5" font-weight="700" letter-spacing="0.5" fill="{T['TEXT']}">WEEKLY TREND &#183; LAST 12 WEEKS</text>
 {bars}
 <line x1="28" y1="216" x2="{w-28}" y2="216" stroke="{T['BORDER']}"/>
 {"".join(cells)}
