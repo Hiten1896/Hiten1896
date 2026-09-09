@@ -29,7 +29,7 @@
   <text x="191" y="188" font-size="8.5" fill="#656d76">14.3%</text>
 <line x1="28" y1="222" x2="468" y2="222" stroke="#d0d7de"/>
 <text x="28" y="248" font-size="9" fill="#656d76">Contribution mix</text>
-<text x="150" y="248" font-size="9.5" fill="#1a7f37">&#9679; 51% commits</text>
+<text x="150" y="248" font-size="9.5" fill="#1a7f37">&#9679; 52% commits</text>
 <text x="290" y="248" font-size="9.5" fill="#8250df">&#9679; 1% pull requests</text>
 <text x="28" y="268" font-size="8.5" fill="#656d76">Based on primary language of owned, non-forked repositories</text>
 </svg>

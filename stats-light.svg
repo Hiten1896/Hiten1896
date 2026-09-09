@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 300" width="560" height="300">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 340" width="560" height="340">
 <style>text { font-family: 'Segoe UI', 'JetBrains Mono', monospace; }</style>
 
-  <rect x="0.5" y="0.5" width="559" height="299" rx="10" fill="#f6f8fa" stroke="#d0d7de"/>
+  <rect x="0.5" y="0.5" width="559" height="339" rx="10" fill="#f6f8fa" stroke="#d0d7de"/>
   <line x1="0.5" y1="30" x2="559.5" y2="30" stroke="#d0d7de"/>
   <circle cx="18" cy="15.5" r="5" fill="#ff5f57"/>
   <circle cx="34" cy="15.5" r="5" fill="#febc2e"/>
@@ -10,7 +10,7 @@
   <circle cx="544" cy="15.5" r="3.5" fill="#0969da"/>
 <text x="28" y="72" font-size="22" font-weight="700" fill="#1f2328">Hiten Sharma</text>
 <text x="28" y="92" font-size="11.5" fill="#0969da">@Hiten1896</text>
-<text x="28" y="124" font-size="27" font-weight="700" fill="#1f2328">1061</text>
+<text x="28" y="124" font-size="27" font-weight="700" fill="#1f2328">1062</text>
 <text x="28" y="140" font-size="9" letter-spacing="0.6" fill="#656d76">CONTRIBUTIONS &#183; LAST 12 MONTHS</text>
 <g transform="translate(482, 95)">
   <circle r="44" fill="none" stroke="#d0d7de" stroke-width="7"/>
@@ -28,17 +28,17 @@
   <text x="40" y="271" font-size="16" font-weight="700" fill="#1f2328">13<tspan font-size="8.5" fill="#656d76" dx="6">across repos</tspan></text>
   <rect x="196" y="238" width="3" height="36" rx="1.5" fill="#1a7f37"/>
   <text x="208" y="250" font-size="8.5" letter-spacing="0.6" fill="#656d76">COMM</text>
-  <text x="208" y="271" font-size="16" font-weight="700" fill="#1f2328">546<tspan font-size="8.5" fill="#656d76" dx="6">last 12 months</tspan></text>
+  <text x="208" y="271" font-size="16" font-weight="700" fill="#1f2328">547<tspan font-size="8.5" fill="#656d76" dx="6">last 12 months</tspan></text>
   <rect x="364" y="238" width="3" height="36" rx="1.5" fill="#8250df"/>
   <text x="376" y="250" font-size="8.5" letter-spacing="0.6" fill="#656d76">PULL REQUESTS</text>
   <text x="376" y="271" font-size="16" font-weight="700" fill="#1f2328">9<tspan font-size="8.5" fill="#656d76" dx="6">1 reviews given</tspan></text>
-  <rect x="28" y="284" width="3" height="36" rx="1.5" fill="#0969da"/>
-  <text x="40" y="296" font-size="8.5" letter-spacing="0.6" fill="#656d76">FOLLOWERS</text>
-  <text x="40" y="317" font-size="16" font-weight="700" fill="#1f2328">7<tspan font-size="8.5" fill="#656d76" dx="6">1.2y on GitHub</tspan></text>
-  <rect x="196" y="284" width="3" height="36" rx="1.5" fill="#0969da"/>
-  <text x="208" y="296" font-size="8.5" letter-spacing="0.6" fill="#656d76">PUBLIC REPOS</text>
-  <text x="208" y="317" font-size="16" font-weight="700" fill="#1f2328">7<tspan font-size="8.5" fill="#656d76" dx="6">0 total forks</tspan></text>
-  <rect x="364" y="284" width="3" height="36" rx="1.5" fill="#bf3989"/>
-  <text x="376" y="296" font-size="8.5" letter-spacing="0.6" fill="#656d76">ACTIVE DAYS</text>
-  <text x="376" y="317" font-size="16" font-weight="700" fill="#1f2328">271<tspan font-size="8.5" fill="#656d76" dx="6">of 366 tracked</tspan></text>
+  <rect x="28" y="280" width="3" height="36" rx="1.5" fill="#0969da"/>
+  <text x="40" y="292" font-size="8.5" letter-spacing="0.6" fill="#656d76">FOLLOWERS</text>
+  <text x="40" y="313" font-size="16" font-weight="700" fill="#1f2328">7<tspan font-size="8.5" fill="#656d76" dx="6">1.2y on GitHub</tspan></text>
+  <rect x="196" y="280" width="3" height="36" rx="1.5" fill="#0969da"/>
+  <text x="208" y="292" font-size="8.5" letter-spacing="0.6" fill="#656d76">PUBLIC REPOS</text>
+  <text x="208" y="313" font-size="16" font-weight="700" fill="#1f2328">7<tspan font-size="8.5" fill="#656d76" dx="6">0 total forks</tspan></text>
+  <rect x="364" y="280" width="3" height="36" rx="1.5" fill="#bf3989"/>
+  <text x="376" y="292" font-size="8.5" letter-spacing="0.6" fill="#656d76">ACTIVE DAYS</text>
+  <text x="376" y="313" font-size="16" font-weight="700" fill="#1f2328">271<tspan font-size="8.5" fill="#656d76" dx="6">of 366 tracked</tspan></text>
 </svg>
