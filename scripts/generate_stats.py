@@ -110,6 +110,7 @@ def fetch_github_stats():
           totalPullRequestReviewContributions
           totalIssueContributions
           contributionCalendar {{
+                        totalContributions
             weeks {{
               contributionDays {{ date contributionCount weekday }}
             }}
