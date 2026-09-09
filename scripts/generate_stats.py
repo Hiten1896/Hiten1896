@@ -70,14 +70,12 @@ def css(theme):
 
 
 def editor_chrome(T, w, h, title, accent):
-    t = title or "~/.github/profile"
     return f"""
   <rect x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="10" fill="{T['PANEL']}" stroke="{T['BORDER']}"/>
   <line x1="0.5" y1="30" x2="{w-0.5}" y2="30" stroke="{T['BORDER']}"/>
   <circle cx="18" cy="15.5" r="5" fill="{T['LIGHTS'][0]}"/>
   <circle cx="34" cy="15.5" r="5" fill="{T['LIGHTS'][1]}"/>
   <circle cx="50" cy="15.5" r="5" fill="{T['LIGHTS'][2]}"/>
-  <text x="64" y="19.5" font-size="10.5" fill="{T['MUTED']}">{t}</text>
   <circle cx="{w-16}" cy="15.5" r="3.5" fill="{accent}"/>"""
 
 
