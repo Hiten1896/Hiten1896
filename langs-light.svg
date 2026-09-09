@@ -1,34 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 280" width="496" height="280">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 234" width="496" height="234">
 <style>text { font-family: 'Segoe UI', 'JetBrains Mono', monospace; }</style>
 
-  <rect x="0.5" y="0.5" width="495" height="279" rx="10" fill="#f6f8fa" stroke="#d0d7de"/>
+  <rect x="0.5" y="0.5" width="495" height="233" rx="10" fill="#f6f8fa" stroke="#d0d7de"/>
   <line x1="0.5" y1="30" x2="495.5" y2="30" stroke="#d0d7de"/>
   <circle cx="18" cy="15.5" r="5" fill="#ff5f57"/>
   <circle cx="34" cy="15.5" r="5" fill="#febc2e"/>
   <circle cx="50" cy="15.5" r="5" fill="#28c840"/>
   <circle cx="480" cy="15.5" r="3.5" fill="#8250df"/>
 <text x="28" y="52" font-size="12" font-weight="700" fill="#1f2328">Languages across 7 public repos</text>
-<rect x="28.0" y="66" width="188.6" height="14" fill="#f1e05a"/><rect x="216.6" y="66" width="62.9" height="14" fill="#3572A5"/><rect x="279.4" y="66" width="62.9" height="14" fill="#e34c26"/><rect x="342.3" y="66" width="62.9" height="14" fill="#3178c6"/><rect x="405.1" y="66" width="62.9" height="14" fill="#DA5B0B"/>
+<rect x="28.0" y="66" width="132.8" height="14" fill="#DA5B0B"/><rect x="160.8" y="66" width="116.9" height="14" fill="#f1e05a"/><rect x="277.7" y="66" width="78.7" height="14" fill="#3178c6"/><rect x="356.3" y="66" width="51.5" height="14" fill="#3572A5"/><rect x="407.8" y="66" width="43.2" height="14" fill="#563d7c"/><rect x="451.0" y="66" width="16.5" height="14" fill="#e34c26"/><rect x="467.5" y="66" width="0.5" height="14" fill="#8b949e"/>
 <rect x="28" y="66" width="440" height="14" rx="3" fill="none" stroke="#d0d7de"/>
 
-  <circle cx="33" cy="126" r="4" fill="#f1e05a"/>
-  <text x="44" y="130" font-size="10.5" fill="#1f2328">JavaScript</text>
-  <text x="44" y="144" font-size="8.5" fill="#656d76">42.9%</text>
-  <circle cx="180" cy="126" r="4" fill="#3572A5"/>
-  <text x="191" y="130" font-size="10.5" fill="#1f2328">Python</text>
-  <text x="191" y="144" font-size="8.5" fill="#656d76">14.3%</text>
-  <circle cx="326" cy="126" r="4" fill="#e34c26"/>
-  <text x="337" y="130" font-size="10.5" fill="#1f2328">HTML</text>
-  <text x="337" y="144" font-size="8.5" fill="#656d76">14.3%</text>
-  <circle cx="33" cy="170" r="4" fill="#3178c6"/>
-  <text x="44" y="174" font-size="10.5" fill="#1f2328">TypeScript</text>
-  <text x="44" y="188" font-size="8.5" fill="#656d76">14.3%</text>
-  <circle cx="180" cy="170" r="4" fill="#DA5B0B"/>
-  <text x="191" y="174" font-size="10.5" fill="#1f2328">Jupyter Notebook</text>
-  <text x="191" y="188" font-size="8.5" fill="#656d76">14.3%</text>
-<line x1="28" y1="222" x2="468" y2="222" stroke="#d0d7de"/>
-<text x="28" y="248" font-size="9" fill="#656d76">Contribution mix</text>
-<text x="150" y="248" font-size="9.5" fill="#1a7f37">&#9679; 52% commits</text>
-<text x="290" y="248" font-size="9.5" fill="#8250df">&#9679; 1% pull requests</text>
-<text x="28" y="268" font-size="8.5" fill="#656d76">Based on primary language of owned, non-forked repositories</text>
+  <circle cx="33" cy="116" r="4" fill="#DA5B0B"/>
+  <text x="44" y="120" font-size="10.5" fill="#1f2328">Jupyter Notebook</text>
+  <text x="44" y="134" font-size="8.5" fill="#656d76">30.2%</text>
+  <circle cx="180" cy="116" r="4" fill="#f1e05a"/>
+  <text x="191" y="120" font-size="10.5" fill="#1f2328">JavaScript</text>
+  <text x="191" y="134" font-size="8.5" fill="#656d76">26.6%</text>
+  <circle cx="326" cy="116" r="4" fill="#3178c6"/>
+  <text x="337" y="120" font-size="10.5" fill="#1f2328">TypeScript</text>
+  <text x="337" y="134" font-size="8.5" fill="#656d76">17.9%</text>
+  <circle cx="33" cy="154" r="4" fill="#3572A5"/>
+  <text x="44" y="158" font-size="10.5" fill="#1f2328">Python</text>
+  <text x="44" y="172" font-size="8.5" fill="#656d76">11.7%</text>
+  <circle cx="180" cy="154" r="4" fill="#563d7c"/>
+  <text x="191" y="158" font-size="10.5" fill="#1f2328">CSS</text>
+  <text x="191" y="172" font-size="8.5" fill="#656d76">9.8%</text>
+  <circle cx="326" cy="154" r="4" fill="#e34c26"/>
+  <text x="337" y="158" font-size="10.5" fill="#1f2328">HTML</text>
+  <text x="337" y="172" font-size="8.5" fill="#656d76">3.8%</text>
+  <circle cx="33" cy="192" r="4" fill="#8b949e"/>
+  <text x="44" y="196" font-size="10.5" fill="#1f2328">Dockerfile</text>
+  <text x="44" y="210" font-size="8.5" fill="#656d76">0.1%</text>
 </svg>
