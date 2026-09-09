@@ -133,20 +133,10 @@ A sleek web application for movie searching, tracking streaming and music availa
   </picture>
 </p>
 
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./streak.svg" />
- <source media="(prefers-color-scheme: light)" srcset="./streak-light.svg" />
-    <img src="./streak.svg" alt="Contribution Streak" width="100%" />
-  </picture>
-</p>
-
----
-
-### 🗓 Contribution Activity
+### 🐍 Contribution Snake
 
 <p align="center">
-  <img src="./year.svg" alt="Contribution Graph" width="100%" />
+  <img src="./year.svg" alt="Contribution Snake" width="100%" />
 </p>
 
 ---

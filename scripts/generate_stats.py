@@ -276,7 +276,7 @@ def render_heatmap(T, days, cell=7.2, gap=2.3):
 # CARD 1: STATS (profile-level only)
 # ─────────────────────────────────────────────
 def generate_stats_svg(data, T):
-    w, h = 560, 300
+    w, h = 560, 340
     rank_letter, rank_pct, score = calculate_rank(data)
 
     days = data["days"]
@@ -310,7 +310,7 @@ def generate_stats_svg(data, T):
     col_w = (w - 56) / 3
     for i, (label, val, color, sub) in enumerate(metrics):
         mx = 28 + (i % 3) * col_w
-        my = 246 + (i // 3) * 46
+        my = 246 + (i // 3) * 42
         cells.append(f"""
   <rect x="{mx:.0f}" y="{my-8:.0f}" width="3" height="36" rx="1.5" fill="{color}"/>
   <text x="{mx+12:.0f}" y="{my+4:.0f}" font-size="8.5" letter-spacing="0.6" fill="{T['MUTED']}">{label}</text>
