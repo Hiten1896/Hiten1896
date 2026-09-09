@@ -101,6 +101,7 @@ def fetch_github_stats():
           totalCount
           nodes {{ stargazerCount forkCount primaryLanguage {{ name }}
         }}
+            }}
         contributionsCollection(
           from: "{from_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}",
           to: "{to_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}") {{
