@@ -2,13 +2,17 @@
 """
 GitHub Profile Stats Generator
 Generates dark + light versions of: stats, streak, langs cards.
-All numbers are REAL (GitHub GraphQL API). No fake fallback data.
+All numbers are REAL (GitHub GraphQL API). No fake fallback data —
+but if the API call fails, an "unavailable" placeholder card is
+still written so the workflow doesn't fail and the README doesn't
+break.
 Theme switching is done in README via <picture> + prefers-color-scheme.
 """
 
 import os
+import sys
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 
 # ─────────────────────────────────────────────
@@ -68,6 +72,13 @@ def css(theme):
     return f"text {{ font-family: {FONT_FAMILY}; }}"
 
 
+def truncate(text, max_chars):
+    """Prevent long language/labels from overflowing their column."""
+    if len(text) <= max_chars:
+        return text
+    return text[: max_chars - 1].rstrip() + "\u2026"
+
+
 def editor_chrome(T, w, h, title, accent):
     return f"""
   <rect x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="10" fill="{T['PANEL']}" stroke="{T['BORDER']}"/>
@@ -85,7 +96,7 @@ def fetch_github_stats():
     if not GITHUB_TOKEN:
         raise RuntimeError("GITHUB_TOKEN is not set")
 
-    to_dt = datetime.utcnow()
+    to_dt = datetime.now(timezone.utc)
     from_dt = to_dt - timedelta(days=365)
 
     query = f"""
@@ -96,14 +107,14 @@ def fetch_github_stats():
         followers {{ totalCount }}
         repositories(first: 100, ownerAffiliations: OWNER, isFork: false) {{
           totalCount
-                    nodes {{
-                        stargazerCount
-                        forkCount
-                        languages(first: 100) {{
-                            edges {{ size node {{ name }} }}
-                        }}
-                    }}
-                }}
+          nodes {{
+            stargazerCount
+            forkCount
+            languages(first: 100) {{
+              edges {{ size node {{ name }} }}
+            }}
+          }}
+        }}
         contributionsCollection(
           from: "{from_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}",
           to: "{to_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}") {{
@@ -142,9 +153,8 @@ def parse_graphql_response(user):
     days.sort(key=lambda x: x["date"])
 
     repos = user["repositories"]["nodes"]
-    created = datetime.strptime(user["createdAt"], "%Y-%m-%dT%H:%M:%SZ")
+    created = datetime.strptime(user["createdAt"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
 
-    # Aggregate GitHub's real language-byte measurements across all repositories.
     lang = defaultdict(int)
     for r in repos:
         for edge in r.get("languages", {}).get("edges", []):
@@ -159,7 +169,7 @@ def parse_graphql_response(user):
         "total_repos": user["repositories"]["totalCount"],
         "total_stars": sum(r["stargazerCount"] for r in repos),
         "total_forks": sum(r["forkCount"] for r in repos),
-        "account_age_years": round((datetime.utcnow() - created).days / 365.25, 1),
+        "account_age_years": round((datetime.now(timezone.utc) - created).days / 365.25, 1),
         "total_commits": user["contributionsCollection"]["totalCommitContributions"],
         "total_prs": user["contributionsCollection"]["totalPullRequestContributions"],
         "total_reviews": user["contributionsCollection"]["totalPullRequestReviewContributions"],
@@ -253,13 +263,28 @@ def calculate_activity_insights(days):
             "top_weekday": top_weekday}
 
 
-def render_heatmap(T, days, cell=7.2, gap=2.3):
-    rects = []
+def render_heatmap(T, days, max_w, max_h):
+    """Render the contribution heatmap scaled to fit exactly within
+    max_w x max_h (no overflow, whatever the account's history length)."""
+    if not days:
+        return "", 0, 0
+
     base = datetime.strptime(days[0]["date"], "%Y-%m-%d").date()
     week_cols = defaultdict(list)
     for d in days:
         wk = (datetime.strptime(d["date"], "%Y-%m-%d").date() - base).days // 7
         week_cols[wk].append(d)
+
+    max_weeks = max(week_cols.keys()) + 1 if week_cols else 1
+    rows = 7
+
+    # Solve for the largest cell size (with a fixed gap ratio) that fits
+    # the allotted box, so the heatmap never overflows its card.
+    gap_ratio = 0.24  # gap as a fraction of cell size
+    cell_w = max_w / (max_weeks + max_weeks * gap_ratio)
+    cell_h = max_h / (rows + rows * gap_ratio)
+    cell = max(2.0, min(cell_w, cell_h, 8.0))
+    gap = cell * gap_ratio
 
     def color(c):
         if c == 0: return T["HEAT"][0]
@@ -268,19 +293,22 @@ def render_heatmap(T, days, cell=7.2, gap=2.3):
         if c <= 9: return T["HEAT"][3]
         return T["HEAT"][4]
 
-    max_weeks = max(week_cols.keys()) + 1 if week_cols else 1
+    rects = []
     for wk in range(max_weeks):
         for pos, d in enumerate(week_cols.get(wk, [])):
             rects.append(f'<rect x="{wk*(cell+gap):.1f}" y="{pos*(cell+gap):.1f}" '
-                         f'width="{cell}" height="{cell}" rx="2" fill="{color(d["count"])}"/>')
-    return "".join(rects), max_weeks * (cell + gap)
+                         f'width="{cell:.1f}" height="{cell:.1f}" rx="1.5" fill="{color(d["count"])}"/>')
+
+    total_w = max_weeks * (cell + gap) - gap
+    total_h = rows * (cell + gap) - gap
+    return "".join(rects), total_w, total_h
 
 
 # ─────────────────────────────────────────────
 # CARD 1: STATS (profile-level only)
 # ─────────────────────────────────────────────
 def generate_stats_svg(data, T):
-    w, h = 560, 360
+    w, h = 560, 380
     rank_letter, rank_pct, score = calculate_rank(data)
 
     days = data["days"]
@@ -288,15 +316,15 @@ def generate_stats_svg(data, T):
               for s in range(0, max(1, len(days)-6), 7)]
     last12 = weekly[-12:] if len(weekly) >= 12 else weekly
     smax = max(last12) or 1
-    sx, sy, sw, sh = 28, 158, 210, 42
+    sx, sy, sw, sh = 28, 176, 210, 42
     bw = sw / max(1, len(last12))
     bars = "".join(
         f'<rect x="{sx+i*bw+1:.1f}" y="{sy+sh-(v/smax)*sh:.1f}" width="{bw-2:.1f}" '
-        f'height="{(v/smax)*sh:.1f}" rx="1.5" fill="{T["CYAN"]}"/>'
+        f'height="{max((v/smax)*sh, 1):.1f}" rx="1.5" fill="{T["CYAN"]}"/>'
         for i, v in enumerate(last12))
 
     pct = max(0, min(100, round(score)))
-    rr, cx, cy = 44, w-78, 95
+    rr, cx, cy = 44, w-78, 100
     circ = 2 * 3.14159265 * rr
     offset = circ * (1 - pct/100)
 
@@ -310,24 +338,25 @@ def generate_stats_svg(data, T):
         ("ACTIVE DAYS",   active_days,           T["PINK"],   f"of {len(days)} tracked"),
     ]
 
+    row_h = 58
     cells = []
     col_w = (w - 56) / 3
     for i, (label, val, color, sub) in enumerate(metrics):
         mx = 28 + (i % 3) * col_w
-        my = 246 + (i // 3) * 42
+        my = 270 + (i // 3) * row_h
         cells.append(f"""
-  <rect x="{mx:.0f}" y="{my-8:.0f}" width="3" height="36" rx="1.5" fill="{color}"/>
-    <text x="{mx+12:.0f}" y="{my+4:.0f}" font-size="10.5" font-weight="800" letter-spacing="0.3" fill="{T['TEXT']}">{label}</text>
-    <text x="{mx+12:.0f}" y="{my+25:.0f}" font-size="19" font-weight="700" fill="{T['TEXT']}">{val}</text>
-    <text x="{mx+12:.0f}" y="{my+37:.0f}" font-size="8" fill="{T['MUTED']}">{sub}</text>""")
+  <rect x="{mx:.0f}" y="{my-8:.0f}" width="3" height="42" rx="1.5" fill="{color}"/>
+    <text x="{mx+12:.0f}" y="{my+3:.0f}" font-size="10" font-weight="800" letter-spacing="0.3" fill="{T['MUTED']}">{label}</text>
+    <text x="{mx+12:.0f}" y="{my+24:.0f}" font-size="19" font-weight="700" fill="{T['TEXT']}">{val}</text>
+    <text x="{mx+12:.0f}" y="{my+37:.0f}" font-size="8" fill="{T['MUTED']}">{truncate(str(sub), 20)}</text>""")
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
 <style>{css(T)}</style>
 {editor_chrome(T, w, h, f"~/{data['username']}/report.md", T['CYAN'])}
-<text x="28" y="72" font-size="22" font-weight="700" fill="{T['TEXT']}">{data['name']}</text>
+<text x="28" y="72" font-size="22" font-weight="700" fill="{T['TEXT']}">{truncate(data['name'], 28)}</text>
 <text x="28" y="92" font-size="11.5" font-weight="700" fill="{T['CYAN']}">@{data['username']}</text>
-<text x="28" y="124" font-size="27" font-weight="700" fill="{T['TEXT']}">{data['total_conts']}</text>
-<text x="28" y="140" font-size="10.5" font-weight="800" letter-spacing="0.3" fill="{T['TEXT']}">CONTRIBUTIONS &#183; LAST 12 MONTHS</text>
+<text x="28" y="128" font-size="27" font-weight="700" fill="{T['TEXT']}">{data['total_conts']}</text>
+<text x="28" y="145" font-size="10" font-weight="800" letter-spacing="0.3" fill="{T['MUTED']}">CONTRIBUTIONS &#183; LAST 12 MONTHS</text>
 <g transform="translate({cx}, {cy})">
   <circle r="{rr}" fill="none" stroke="{T['BORDER']}" stroke-width="7"/>
   <circle r="{rr}" fill="none" stroke="{T['VIOLET']}" stroke-width="7" stroke-linecap="round"
@@ -335,9 +364,9 @@ def generate_stats_svg(data, T):
   <text y="5" font-size="20" font-weight="700" fill="{T['TEXT']}" text-anchor="middle">{rank_letter}</text>
   <text y="19" font-size="7" letter-spacing="0.5" fill="{T['MUTED']}" text-anchor="middle">{rank_pct}</text>
 </g>
-<text x="28" y="152" font-size="9.5" font-weight="800" letter-spacing="0.3" fill="{T['TEXT']}">WEEKLY TREND &#183; LAST 12 WEEKS</text>
+<text x="28" y="169" font-size="9.5" font-weight="800" letter-spacing="0.3" fill="{T['MUTED']}">WEEKLY TREND &#183; LAST 12 WEEKS</text>
 {bars}
-<line x1="28" y1="216" x2="{w-28}" y2="216" stroke="{T['BORDER']}"/>
+<line x1="28" y1="234" x2="{w-28}" y2="234" stroke="{T['BORDER']}"/>
 {"".join(cells)}
 </svg>"""
 
@@ -346,12 +375,16 @@ def generate_stats_svg(data, T):
 # CARD 2: STREAK + ACTIVITY RHYTHM
 # ─────────────────────────────────────────────
 def generate_streak_svg(data, T):
-    w, h = 496, 300
+    w, h = 496, 340
+
     s = calculate_streak(data["days"])
     a = calculate_activity_insights(data["days"])
 
-    heatmap, heat_w = render_heatmap(T, data["days"])
-    scale = min(1.0, (w - 56) / heat_w) if heat_w else 1.0
+    heatmap_area_w = w - 56
+    heatmap_area_h = 70
+    heatmap, heat_w, heat_h = render_heatmap(T, data["days"], heatmap_area_w, heatmap_area_h)
+    # center the heatmap horizontally within its reserved area
+    heat_x_offset = max(0, (heatmap_area_w - heat_w) / 2)
 
     legend_x = w - 150
     legend = "".join(f'<rect x="{legend_x+i*13}" width="9" height="9" rx="2" fill="{c}"/>'
@@ -361,30 +394,38 @@ def generate_streak_svg(data, T):
         return f"""
   <text x="{x}" font-size="8.5" letter-spacing="0.6" fill="{T['MUTED']}">{label}</text>
   <text x="{x}" y="22" font-size="19" font-weight="700" fill="{color}">{value}</text>
-  <text x="{x}" y="37" font-size="8" fill="{T['MUTED']}">{sub}</text>"""
+  <text x="{x}" y="37" font-size="8" fill="{T['MUTED']}">{truncate(str(sub), 24)}</text>"""
+
+    heatmap_y = 48
+    legend_y = heatmap_y + heatmap_area_h + 14
+    divider1_y = legend_y + 20
+    row1_y = divider1_y + 32
+    divider2_y = row1_y + 44
+    row2_y = divider2_y + 32
+    footer_y = row2_y + 48
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
 <style>{css(T)}</style>
 {editor_chrome(T, w, h, f"~/{data['username']}/streak.log", T['GREEN'])}
-<g transform="translate(28, 50) scale({scale:.3f})">{heatmap}</g>
-<g transform="translate(0, 118)">
+<g transform="translate({28+heat_x_offset:.1f}, {heatmap_y})">{heatmap}</g>
+<g transform="translate(0, {legend_y})">
   <text x="28" font-size="9" fill="{T['MUTED']}">less</text>
   {legend}
   <text x="{legend_x + 5*13 + 8}" y="8" font-size="9" fill="{T['MUTED']}">more</text>
 </g>
-<line x1="28" y1="136" x2="{w-28}" y2="136" stroke="{T['BORDER']}"/>
-<g transform="translate(28, 168)">
+<line x1="28" y1="{divider1_y}" x2="{w-28}" y2="{divider1_y}" stroke="{T['BORDER']}"/>
+<g transform="translate(28, {row1_y})">
     {metric(0,   "LONGEST STREAK",  s['longest_streak'], T['TEXT'],   s['long_range'])}
     {metric(150, "LONGEST GAP",     a['longest_gap'],    T['RED'],    "days without activity")}
   {metric(300, "CURRENT STREAK",  s['current_streak'], T['GREEN'],  s['curr_range'])}
 </g>
-<line x1="28" y1="212" x2="{w-28}" y2="212" stroke="{T['BORDER']}"/>
-<g transform="translate(28, 244)">
+<line x1="28" y1="{divider2_y}" x2="{w-28}" y2="{divider2_y}" stroke="{T['BORDER']}"/>
+<g transform="translate(28, {row2_y})">
   {metric(0,   "BUSIEST DAY",      s['best_day_count'], T['VIOLET'], s['best_day_date'] or '-')}
   {metric(150, "BUSIEST MONTH",    a['busiest_month'],  T['CYAN'],   f"{a['busiest_month_count']} contributions")}
-  {metric(300, "WEEKEND ACTIVITY", a['weekend_pct'],    T['AMBER'],  f"peak: {a['top_weekday']}")}
+  {metric(300, "WEEKEND ACTIVITY", f"{a['weekend_pct']}%", T['AMBER'],   f"peak: {a['top_weekday']}")}
 </g>
-<text x="28" y="{h-12}" font-size="8.5" fill="{T['MUTED']}">{s['total_active']} active days &#183; avg {s['avg_per_active_day']}/day &#183; last 12 months</text>
+<text x="28" y="{footer_y}" font-size="8.5" fill="{T['MUTED']}">{s['total_active']} active days &#183; avg {s['avg_per_active_day']}/day &#183; last 12 months</text>
 </svg>"""
 
 
@@ -393,29 +434,32 @@ def generate_streak_svg(data, T):
 # ─────────────────────────────────────────────
 def generate_langs_svg(data, T):
     w = 496
-    langs = sorted(data["langs"].items(), key=lambda x: x[1], reverse=True)
+    langs = sorted(data["langs"].items(), key=lambda x: x[1], reverse=True)[:12]
     total = sum(v for _, v in langs) or 1
     rows = max(1, (len(langs) + 2) // 3)
-    items_bottom = 134 + (rows - 1) * 38
-    h = max(220, items_bottom + 24)
+    items_top = 130
+    row_h = 40
+    items_bottom = items_top + (rows - 1) * row_h
+    h = max(220, items_bottom + 40)
 
-    bar_y, bar_x, bar_w, bar_h = 66, 28, w - 56, 14
+    bar_y, bar_x, bar_w, bar_h = 76, 28, w - 56, 14
     segs, xoff = [], bar_x
     for name, v in langs:
         seg_w = (v / total) * bar_w
         color = LANG_COLORS.get(name, "#8b949e")
-        segs.append(f'<rect x="{xoff:.1f}" y="{bar_y}" width="{seg_w:.1f}" height="{bar_h}" fill="{color}"/>')
+        segs.append(f'<rect x="{xoff:.1f}" y="{bar_y}" width="{max(seg_w, 0):.1f}" height="{bar_h}" fill="{color}"/>')
         xoff += seg_w
 
     items = []
     col_w = (w - 56) / 3
+    max_name_chars = 14  # keeps long names (e.g. "Jupyter Notebook") from overlapping the next column
     for i, (name, v) in enumerate(langs):
         ix = 28 + (i % 3) * col_w
-        iy = 120 + (i // 3) * 38
+        iy = items_top + (i // 3) * row_h
         pct = round(v / total * 100, 1)
         items.append(f"""
   <circle cx="{ix+5:.0f}" cy="{iy-4:.0f}" r="4" fill="{LANG_COLORS.get(name, '#8b949e')}"/>
-  <text x="{ix+16:.0f}" y="{iy:.0f}" font-size="10.5" fill="{T['TEXT']}">{name}</text>
+  <text x="{ix+16:.0f}" y="{iy:.0f}" font-size="10.5" fill="{T['TEXT']}">{truncate(name, max_name_chars)}</text>
   <text x="{ix+16:.0f}" y="{iy+14:.0f}" font-size="8.5" fill="{T['MUTED']}">{pct}%</text>""")
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
@@ -429,27 +473,40 @@ def generate_langs_svg(data, T):
 
 
 # ─────────────────────────────────────────────
-# ERROR STATE
+# ERROR STATE (graceful fallback so the workflow never fails outright)
 # ─────────────────────────────────────────────
-def render_error_svg(filename, T, w, h, title):
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
+def render_error_svg(T, w, h, title):
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
 <style>{css(T)}</style>
 {editor_chrome(T, w, h, title, T['RED'])}
 <text x="{w/2}" y="{h/2}" font-size="13" fill="{T['RED']}" text-anchor="middle">API unavailable &#8212; stats could not be fetched</text>
 <text x="{w/2}" y="{h/2+22}" font-size="10" fill="{T['MUTED']}" text-anchor="middle">will retry on next scheduled run</text>
 </svg>"""
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(svg)
 
 
 # ─────────────────────────────────────────────
 # MAIN — generates dark AND light versions
 # ─────────────────────────────────────────────
 def main():
-    data = fetch_github_stats()
-    cards = [("stats.svg", 560, 300, generate_stats_svg, "~/report.md"),
-             ("streak.svg", 496, 300, generate_streak_svg, "~/streak.log"),
+    cards = [("stats.svg", 560, 380, generate_stats_svg, "~/report.md"),
+             ("streak.svg", 496, 340, generate_streak_svg, "~/streak.log"),
              ("langs.svg", 496, 280, generate_langs_svg, "~/languages.json")]
+
+    try:
+        data = fetch_github_stats()
+    except Exception as e:
+        # Don't fail the whole workflow — write placeholder cards instead,
+        # so the README doesn't end up with broken/missing images.
+        print(f"::warning::{e}", file=sys.stderr)
+        for theme_name, T in THEMES.items():
+            suffix = "" if theme_name == "dark" else "-light"
+            for base, w, h, fn, title in cards:
+                fname = base.replace(".svg", f"{suffix}.svg")
+                with open(fname, "w", encoding="utf-8") as f:
+                    f.write(render_error_svg(T, w, h, title))
+                print(f"wrote {fname} (placeholder)")
+        print("Done with fallback cards.")
+        return
 
     for theme_name, T in THEMES.items():
         suffix = "" if theme_name == "dark" else "-light"

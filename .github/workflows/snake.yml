@@ -36,3 +36,6 @@ jobs:
         with:
           commit_message: "chore: update contribution snake animation [skip ci]"
           file_pattern: year.svg year-light.svg
+          commit_user_name: "Hiten1896"
+          commit_user_email: "hitensharma1896@gmail.com"
+          commit_author: "Hiten1896 <hitensharma1896@gmail.com>"
