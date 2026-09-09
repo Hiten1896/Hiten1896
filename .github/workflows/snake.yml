@@ -8,6 +8,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 jobs:
   generate-snake:
     runs-on: ubuntu-latest
@@ -15,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Generate the snake SVG
         uses: Platane/snk@v3
@@ -26,7 +29,7 @@ jobs:
             year.svg?palette=github-dark
             year-light.svg?palette=github-light
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Push generated snake to main
         uses: stefanzweifel/git-auto-commit-action@v4

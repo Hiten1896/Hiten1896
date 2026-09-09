@@ -38,7 +38,6 @@ THEMES = {
         "LIGHTS": ["#ff5f57", "#febc2e", "#28c840"],
     },
     "light": {
-        "BG":     "#ffffff",
         "PANEL":  "#f6f8fa",
         "BORDER": "#d0d7de",
         "TEXT":   "#1f2328",
@@ -105,7 +104,6 @@ def fetch_github_stats():
                         }}
                     }}
                 }}
-            }}
         contributionsCollection(
           from: "{from_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}",
           to: "{to_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}") {{
