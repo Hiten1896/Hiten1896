@@ -86,8 +86,7 @@ def editor_chrome(T, w, h, title, accent):
 # ─────────────────────────────────────────────
 def fetch_github_stats():
     if not GITHUB_TOKEN:
-        print("ERROR: GITHUB_TOKEN not set.")
-        return None
+        raise RuntimeError("GITHUB_TOKEN is not set")
 
     to_dt = datetime.utcnow()
     from_dt = to_dt - timedelta(days=365)
@@ -111,7 +110,6 @@ def fetch_github_stats():
           totalIssueContributions
           totalContributions
           contributionCalendar {{
-           totalContributions
             weeks {{
               contributionDays {{ date contributionCount weekday }}
             }}
@@ -127,12 +125,10 @@ def fetch_github_stats():
         resp.raise_for_status()
         result = resp.json()
         if "errors" in result or result.get("data", {}).get("user") is None:
-            print(f"GraphQL error: {result.get('errors')}")
-            return None
+            raise RuntimeError(f"GitHub GraphQL error: {result.get('errors')}")
         return parse_graphql_response(result["data"]["user"])
     except Exception as e:
-        print(f"API request failed: {e}")
-        return None
+        raise RuntimeError(f"GitHub API request failed: {e}") from e
 
 
 def parse_graphql_response(user):
@@ -463,14 +459,11 @@ def main():
         suffix = "" if theme_name == "dark" else "-light"
         for base, w, h, fn, title in cards:
             fname = base.replace(".svg", f"{suffix}.svg")
-            if data is None:
-                render_error_svg(fname, T, w, h, title)
-            else:
-                with open(fname, "w", encoding="utf-8") as f:
-                    f.write(fn(data, T))
+            with open(fname, "w", encoding="utf-8") as f:
+                f.write(fn(data, T))
             print(f"wrote {fname}")
 
-    print("Done!" if data else "Done with error states (no fake data).")
+    print("Done!")
 
 
 if __name__ == "__main__":

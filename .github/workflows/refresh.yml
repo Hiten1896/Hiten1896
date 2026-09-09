@@ -25,7 +25,7 @@ jobs:
 
       - name: Generate stat cards (dark + light)
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
           GITHUB_USER: Hiten1896
         run: python scripts/generate_stats.py
 
