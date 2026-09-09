@@ -23,7 +23,8 @@ jobs:
         with:
           github_user_name: ${{ github.repository_owner }}
           outputs: |
-            year.svg
+            year.svg?palette=github-dark
+            year-light.svg?palette=github-light
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
@@ -31,4 +32,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "chore: update contribution snake animation [skip ci]"
-          file_pattern: year.svg
+          file_pattern: year.svg year-light.svg

@@ -136,7 +136,11 @@ A sleek web application for movie searching, tracking streaming and music availa
 ### 🐍 Contribution Snake
 
 <p align="center">
-  <img src="./year.svg" alt="Contribution Snake" width="100%" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./year.svg" />
+    <source media="(prefers-color-scheme: light)" srcset="./year-light.svg" />
+    <img src="./year.svg" alt="Contribution Snake" width="100%" />
+  </picture>
 </p>
 
 ---
