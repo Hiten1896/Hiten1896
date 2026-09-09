@@ -97,8 +97,14 @@ def fetch_github_stats():
         followers {{ totalCount }}
         repositories(first: 100, ownerAffiliations: OWNER, isFork: false) {{
           totalCount
-          nodes {{ stargazerCount forkCount primaryLanguage {{ name }}
-        }}
+                    nodes {{
+                        stargazerCount
+                        forkCount
+                        languages(first: 100) {{
+                            edges {{ size node {{ name }} }}
+                        }}
+                    }}
+                }}
             }}
         contributionsCollection(
           from: "{from_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}",
@@ -140,11 +146,13 @@ def parse_graphql_response(user):
     repos = user["repositories"]["nodes"]
     created = datetime.strptime(user["createdAt"], "%Y-%m-%dT%H:%M:%SZ")
 
-    # Real language bytes estimate: count repos per primary language
+    # Aggregate GitHub's real language-byte measurements across all repositories.
     lang = defaultdict(int)
     for r in repos:
-        if r.get("primaryLanguage") and r["primaryLanguage"].get("name"):
-            lang[r["primaryLanguage"]["name"]] += 1
+        for edge in r.get("languages", {}).get("edges", []):
+            language = edge.get("node") or {}
+            if language.get("name") and edge.get("size"):
+                lang[language["name"]] += edge["size"]
 
     return {
         "name": user.get("name") or USERNAME,
@@ -386,17 +394,16 @@ def generate_streak_svg(data, T):
 # CARD 3: LANGUAGES (real repo data)
 # ─────────────────────────────────────────────
 def generate_langs_svg(data, T):
-    w, h = 496, 280
+    w = 496
     langs = sorted(data["langs"].items(), key=lambda x: x[1], reverse=True)
-    total = sum(v for _, v in langs)
-    top = langs[:5]
-    other = sum(v for _, v in langs[5:])
-    if other > 0:
-        top.append(("Other", other))
+    total = sum(v for _, v in langs) or 1
+    rows = max(1, (len(langs) + 2) // 3)
+    items_bottom = 134 + (rows - 1) * 38
+    h = max(220, items_bottom + 24)
 
     bar_y, bar_x, bar_w, bar_h = 66, 28, w - 56, 14
     segs, xoff = [], bar_x
-    for name, v in top:
+    for name, v in langs:
         seg_w = (v / total) * bar_w
         color = LANG_COLORS.get(name, "#8b949e")
         segs.append(f'<rect x="{xoff:.1f}" y="{bar_y}" width="{seg_w:.1f}" height="{bar_h}" fill="{color}"/>')
@@ -404,17 +411,14 @@ def generate_langs_svg(data, T):
 
     items = []
     col_w = (w - 56) / 3
-    for i, (name, v) in enumerate(top):
+    for i, (name, v) in enumerate(langs):
         ix = 28 + (i % 3) * col_w
-        iy = 130 + (i // 3) * 44
+        iy = 120 + (i // 3) * 38
         pct = round(v / total * 100, 1)
         items.append(f"""
   <circle cx="{ix+5:.0f}" cy="{iy-4:.0f}" r="4" fill="{LANG_COLORS.get(name, '#8b949e')}"/>
   <text x="{ix+16:.0f}" y="{iy:.0f}" font-size="10.5" fill="{T['TEXT']}">{name}</text>
   <text x="{ix+16:.0f}" y="{iy+14:.0f}" font-size="8.5" fill="{T['MUTED']}">{pct}%</text>""")
-
-    commit_share = round(data["total_commits"] / max(1, data["total_conts"]) * 100)
-    pr_share = round(data["total_prs"] / max(1, data["total_conts"]) * 100)
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
 <style>{css(T)}</style>
@@ -423,11 +427,6 @@ def generate_langs_svg(data, T):
 {"".join(segs)}
 <rect x="{bar_x}" y="{bar_y}" width="{bar_w}" height="{bar_h}" rx="3" fill="none" stroke="{T['BORDER']}"/>
 {"".join(items)}
-<line x1="28" y1="222" x2="{w-28}" y2="222" stroke="{T['BORDER']}"/>
-<text x="28" y="248" font-size="9" fill="{T['MUTED']}">Contribution mix</text>
-<text x="150" y="248" font-size="9.5" fill="{T['GREEN']}">&#9679; {commit_share}% commits</text>
-<text x="290" y="248" font-size="9.5" fill="{T['VIOLET']}">&#9679; {pr_share}% pull requests</text>
-<text x="28" y="{h-12}" font-size="8.5" fill="{T['MUTED']}">Based on primary language of owned, non-forked repositories</text>
 </svg>"""
 
 
