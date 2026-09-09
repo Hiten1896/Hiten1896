@@ -311,7 +311,7 @@ def generate_stats_svg(data, T):
         my = 246 + (i // 3) * 42
         cells.append(f"""
   <rect x="{mx:.0f}" y="{my-8:.0f}" width="3" height="36" rx="1.5" fill="{color}"/>
-    <text x="{mx+12:.0f}" y="{my+4:.0f}" font-size="9.5" font-weight="700" letter-spacing="0.5" fill="{T['TEXT']}">{label}</text>
+    <text x="{mx+12:.0f}" y="{my+4:.0f}" font-size="10.5" font-weight="800" letter-spacing="0.3" fill="{T['TEXT']}">{label}</text>
     <text x="{mx+12:.0f}" y="{my+25:.0f}" font-size="19" font-weight="700" fill="{T['TEXT']}">{val}</text>
     <text x="{mx+12:.0f}" y="{my+37:.0f}" font-size="8" fill="{T['MUTED']}">{sub}</text>""")
 
@@ -321,7 +321,7 @@ def generate_stats_svg(data, T):
 <text x="28" y="72" font-size="22" font-weight="700" fill="{T['TEXT']}">{data['name']}</text>
 <text x="28" y="92" font-size="11.5" font-weight="700" fill="{T['CYAN']}">@{data['username']}</text>
 <text x="28" y="124" font-size="27" font-weight="700" fill="{T['TEXT']}">{data['total_conts']}</text>
-<text x="28" y="140" font-size="9.5" font-weight="700" letter-spacing="0.5" fill="{T['TEXT']}">CONTRIBUTIONS &#183; LAST 12 MONTHS</text>
+<text x="28" y="140" font-size="10.5" font-weight="800" letter-spacing="0.3" fill="{T['TEXT']}">CONTRIBUTIONS &#183; LAST 12 MONTHS</text>
 <g transform="translate({cx}, {cy})">
   <circle r="{rr}" fill="none" stroke="{T['BORDER']}" stroke-width="7"/>
   <circle r="{rr}" fill="none" stroke="{T['VIOLET']}" stroke-width="7" stroke-linecap="round"
@@ -329,7 +329,7 @@ def generate_stats_svg(data, T):
   <text y="5" font-size="20" font-weight="700" fill="{T['TEXT']}" text-anchor="middle">{rank_letter}</text>
   <text y="19" font-size="7" letter-spacing="0.5" fill="{T['MUTED']}" text-anchor="middle">{rank_pct}</text>
 </g>
-<text x="28" y="152" font-size="8.5" font-weight="700" letter-spacing="0.5" fill="{T['TEXT']}">WEEKLY TREND &#183; LAST 12 WEEKS</text>
+<text x="28" y="152" font-size="9.5" font-weight="800" letter-spacing="0.3" fill="{T['TEXT']}">WEEKLY TREND &#183; LAST 12 WEEKS</text>
 {bars}
 <line x1="28" y1="216" x2="{w-28}" y2="216" stroke="{T['BORDER']}"/>
 {"".join(cells)}
