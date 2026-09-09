@@ -110,7 +110,6 @@ def fetch_github_stats():
           totalPullRequestReviewContributions
           totalIssueContributions
           contributionCalendar {{
-                        totalContributions
             weeks {{
               contributionDays {{ date contributionCount weekday }}
             }}
@@ -161,7 +160,7 @@ def parse_graphql_response(user):
         "total_prs": user["contributionsCollection"]["totalPullRequestContributions"],
         "total_reviews": user["contributionsCollection"]["totalPullRequestReviewContributions"],
         "total_issues": user["contributionsCollection"]["totalIssueContributions"],
-        "total_conts": user["contributionsCollection"]["contributionCalendar"]["totalContributions"],
+        "total_conts": sum(day["count"] for day in days),
         "days": days,
         "langs": lang,
     }
