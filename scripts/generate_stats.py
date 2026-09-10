@@ -308,65 +308,84 @@ def render_heatmap(T, days, max_w, max_h):
 # CARD 1: STATS (profile-level only)
 # ─────────────────────────────────────────────
 def generate_stats_svg(data, T):
-    w, h = 560, 380
+    """Redesigned stats card.
+
+    Layout, top to bottom:
+      - identity row: name/handle on the left, a big rank ring on the right
+      - a full-width weekly activity graph (area + line, not bars) as the
+        visual centerpiece, with the contributions total as an overlaid stat
+      - a clean 4-up metric strip along the bottom (no divider line clutter,
+        no "commits" metric): Stars, Pull Requests, Followers, Repos
+    """
+    w, h = 560, 300
     rank_letter, rank_pct, score = calculate_rank(data)
 
     days = data["days"]
     weekly = [sum(days[i]["count"] for i in range(s, min(s+7, len(days))))
               for s in range(0, max(1, len(days)-6), 7)]
-    last12 = weekly[-12:] if len(weekly) >= 12 else weekly
-    smax = max(last12) or 1
-    sx, sy, sw, sh = 28, 176, 210, 42
-    bw = sw / max(1, len(last12))
-    bars = "".join(
-        f'<rect x="{sx+i*bw+1:.1f}" y="{sy+sh-(v/smax)*sh:.1f}" width="{bw-2:.1f}" '
-        f'height="{max((v/smax)*sh, 1):.1f}" rx="1.5" fill="{T["CYAN"]}"/>'
-        for i, v in enumerate(last12))
+    last16 = weekly[-16:] if len(weekly) >= 16 else weekly
+    smax = max(last16) or 1
+    n = max(1, len(last16))
 
+    # Area/line chart spans the full card width for a bigger visual anchor.
+    gx, gy, gw, gh = 28, 116, w - 56, 62
+    pts = []
+    for i, v in enumerate(last16):
+        px = gx + (i / max(1, n - 1)) * gw if n > 1 else gx
+        py = gy + gh - (v / smax) * gh
+        pts.append((px, py))
+    line_path = "M " + " L ".join(f"{px:.1f} {py:.1f}" for px, py in pts)
+    area_path = (line_path + f" L {pts[-1][0]:.1f} {gy+gh:.1f} "
+                 f"L {pts[0][0]:.1f} {gy+gh:.1f} Z")
+    dots = "".join(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="2.2" fill="{T["CYAN"]}"/>'
+                    for px, py in pts)
+
+    # Rank ring, top-right — larger and the clear focal point.
     pct = max(0, min(100, round(score)))
-    rr, cx, cy = 44, w-78, 100
+    rr, cx, cy = 40, w - 76, 62
     circ = 2 * 3.14159265 * rr
-    offset = circ * (1 - pct/100)
+    offset = circ * (1 - pct / 100)
 
-    active_days = sum(1 for d in days if d["count"] > 0)
     metrics = [
-        ("TOTAL STARS",   data["total_stars"],   T["AMBER"],  "across repos"),
-        ("COMMITS",       data["total_commits"], T["GREEN"],  "last 12 months"),
-        ("PULL REQUESTS", data["total_prs"],     T["VIOLET"], f"{data['total_reviews']} reviews given"),
-        ("FOLLOWERS",     data["followers"],     T["CYAN"],   f"{data['account_age_years']}y on GitHub"),
-        ("PUBLIC REPOS",  data["total_repos"],   T["CYAN"],   f"{data['total_forks']} total forks"),
-        ("ACTIVE DAYS",   active_days,           T["PINK"],   f"of {len(days)} tracked"),
+        ("STARS",     data["total_stars"], T["AMBER"],  "across repos"),
+        ("PULL REQS", data["total_prs"],   T["VIOLET"], f"{data['total_reviews']} reviews"),
+        ("FOLLOWERS", data["followers"],   T["CYAN"],   f"{data['account_age_years']}y on GitHub"),
+        ("REPOS",     data["total_repos"], T["PINK"],   f"{data['total_forks']} forks"),
     ]
-
-    row_h = 58
+    strip_y = 226
+    col_w = (w - 56) / 4
     cells = []
-    col_w = (w - 56) / 3
     for i, (label, val, color, sub) in enumerate(metrics):
-        mx = 28 + (i % 3) * col_w
-        my = 270 + (i // 3) * row_h
+        mx = 28 + i * col_w
         cells.append(f"""
-  <rect x="{mx:.0f}" y="{my-8:.0f}" width="3" height="42" rx="1.5" fill="{color}"/>
-    <text x="{mx+12:.0f}" y="{my+3:.0f}" font-size="10" font-weight="800" letter-spacing="0.3" fill="{T['MUTED']}">{label}</text>
-    <text x="{mx+12:.0f}" y="{my+24:.0f}" font-size="19" font-weight="700" fill="{T['TEXT']}">{val}</text>
-    <text x="{mx+12:.0f}" y="{my+37:.0f}" font-size="8" fill="{T['MUTED']}">{truncate(str(sub), 20)}</text>""")
+  <circle cx="{mx+5:.0f}" cy="{strip_y-5:.0f}" r="4" fill="{color}"/>
+  <text x="{mx+16:.0f}" y="{strip_y-1:.0f}" font-size="9.5" font-weight="800" letter-spacing="0.4" fill="{T['MUTED']}">{label}</text>
+  <text x="{mx:.0f}" y="{strip_y+24:.0f}" font-size="24" font-weight="700" fill="{T['TEXT']}">{val}</text>
+  <text x="{mx:.0f}" y="{strip_y+40:.0f}" font-size="9" fill="{T['MUTED']}">{truncate(str(sub), 20)}</text>""")
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
 <style>{css(T)}</style>
+<defs>
+  <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="{T['CYAN']}" stop-opacity="0.35"/>
+    <stop offset="100%" stop-color="{T['CYAN']}" stop-opacity="0"/>
+  </linearGradient>
+</defs>
 {editor_chrome(T, w, h, f"~/{data['username']}/report.md", T['CYAN'])}
-<text x="28" y="72" font-size="22" font-weight="700" fill="{T['TEXT']}">{truncate(data['name'], 28)}</text>
-<text x="28" y="92" font-size="11.5" font-weight="700" fill="{T['CYAN']}">@{data['username']}</text>
-<text x="28" y="128" font-size="27" font-weight="700" fill="{T['TEXT']}">{data['total_conts']}</text>
-<text x="28" y="145" font-size="10" font-weight="800" letter-spacing="0.3" fill="{T['MUTED']}">CONTRIBUTIONS &#183; LAST 12 MONTHS</text>
+<text x="28" y="60" font-size="21" font-weight="700" fill="{T['TEXT']}">{truncate(data['name'], 24)}</text>
+<text x="28" y="80" font-size="11.5" font-weight="700" fill="{T['CYAN']}">@{data['username']}</text>
 <g transform="translate({cx}, {cy})">
-  <circle r="{rr}" fill="none" stroke="{T['BORDER']}" stroke-width="7"/>
-  <circle r="{rr}" fill="none" stroke="{T['VIOLET']}" stroke-width="7" stroke-linecap="round"
+  <circle r="{rr}" fill="none" stroke="{T['BORDER']}" stroke-width="6"/>
+  <circle r="{rr}" fill="none" stroke="{T['VIOLET']}" stroke-width="6" stroke-linecap="round"
     stroke-dasharray="{circ:.2f}" stroke-dashoffset="{offset:.2f}" transform="rotate(-90)"/>
-  <text y="5" font-size="20" font-weight="700" fill="{T['TEXT']}" text-anchor="middle">{rank_letter}</text>
-  <text y="19" font-size="7" letter-spacing="0.5" fill="{T['MUTED']}" text-anchor="middle">{rank_pct}</text>
+  <text y="6" font-size="19" font-weight="700" fill="{T['TEXT']}" text-anchor="middle">{rank_letter}</text>
+  <text y="20" font-size="6.5" letter-spacing="0.4" fill="{T['MUTED']}" text-anchor="middle">{rank_pct}</text>
 </g>
-<text x="28" y="169" font-size="9.5" font-weight="800" letter-spacing="0.3" fill="{T['MUTED']}">WEEKLY TREND &#183; LAST 12 WEEKS</text>
-{bars}
-<line x1="28" y1="234" x2="{w-28}" y2="234" stroke="{T['BORDER']}"/>
+<text x="28" y="100" font-size="9.5" font-weight="800" letter-spacing="0.4" fill="{T['MUTED']}">{data['total_conts']} CONTRIBUTIONS &#183; LAST 16 WEEKS</text>
+<path d="{area_path}" fill="url(#areaFill)"/>
+<path d="{line_path}" fill="none" stroke="{T['CYAN']}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+{dots}
+<line x1="28" y1="{strip_y-28}" x2="{w-28}" y2="{strip_y-28}" stroke="{T['BORDER']}"/>
 {"".join(cells)}
 </svg>"""
 
@@ -488,7 +507,7 @@ def render_error_svg(T, w, h, title):
 # MAIN — generates dark AND light versions
 # ─────────────────────────────────────────────
 def main():
-    cards = [("stats.svg", 560, 380, generate_stats_svg, "~/report.md"),
+    cards = [("stats.svg", 560, 300, generate_stats_svg, "~/report.md"),
              ("streak.svg", 496, 340, generate_streak_svg, "~/streak.log"),
              ("langs.svg", 496, 280, generate_langs_svg, "~/languages.json")]
 
