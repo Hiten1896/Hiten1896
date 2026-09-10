@@ -184,12 +184,16 @@ def fetch_github_stats():
 def parse_graphql_response(user):
     days = []
     for week in user["contributionsCollection"]["contributionCalendar"]["weeks"]:
+        if not week:
+            continue
         for d in week["contributionDays"]:
+            if not d:
+                continue
             days.append({"date": d["date"], "count": d["contributionCount"],
                          "weekday": d["weekday"]})
     days.sort(key=lambda x: x["date"])
 
-    repos = user["repositories"]["nodes"]
+    repos = [repo for repo in user["repositories"]["nodes"] if repo]
     created = datetime.strptime(user["createdAt"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
 
     lang = defaultdict(int)
@@ -570,10 +574,7 @@ def main():
              ("streak.svg", 496, 340, generate_streak_svg, "Streak & Rhythm"),
              ("langs.svg", 496, 280, generate_langs_svg, "Language Mix")]
 
-    try:
-        data = fetch_github_stats()
-    except Exception as e:
-        print(f"::warning::{e}", file=sys.stderr)
+    def write_fallback_cards():
         for theme_name, T in THEMES.items():
             suffix = "" if theme_name == "dark" else "-light"
             for base, w, h, fn, title in cards:
@@ -581,16 +582,28 @@ def main():
                 with open(fname, "w", encoding="utf-8") as f:
                     f.write(render_error_svg(T, w, h, title))
                 print(f"wrote {fname} (placeholder)")
+
+    try:
+        data = fetch_github_stats()
+    except Exception as e:
+        print(f"::warning::{e}", file=sys.stderr)
+        write_fallback_cards()
         print("Done with fallback cards.")
         return
 
-    for theme_name, T in THEMES.items():
-        suffix = "" if theme_name == "dark" else "-light"
-        for base, w, h, fn, title in cards:
-            fname = base.replace(".svg", f"{suffix}.svg")
-            with open(fname, "w", encoding="utf-8") as f:
-                f.write(fn(data, T))
-            print(f"wrote {fname}")
+    try:
+        for theme_name, T in THEMES.items():
+            suffix = "" if theme_name == "dark" else "-light"
+            for base, w, h, fn, title in cards:
+                fname = base.replace(".svg", f"{suffix}.svg")
+                with open(fname, "w", encoding="utf-8") as f:
+                    f.write(fn(data, T))
+                print(f"wrote {fname}")
+    except Exception as e:
+        print(f"::warning::Card rendering failed: {e}", file=sys.stderr)
+        write_fallback_cards()
+        print("Done with fallback cards.")
+        return
 
     print("Done!")
 
