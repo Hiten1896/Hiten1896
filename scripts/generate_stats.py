@@ -385,6 +385,7 @@ def generate_stats_svg(data, T):
         ("FOLLOWERS", data["followers"],   T["CYAN"],   f"{data['account_age_years']}y on GitHub"),
         ("REPOS",     data["total_repos"], T["PINK"],   f"{data['total_forks']} forks"),
     ]
+    profile_subtitle = esc(f"@{data['username']} {chr(0x00B7)} profile overview")
     strip_y = 254
     col_w = (w - 56) / 4
     cells = []
@@ -403,7 +404,7 @@ def generate_stats_svg(data, T):
   <feGaussianBlur stdDeviation="1.4" result="b"/>
   <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
 </filter>
-{header(T, w, h, truncate(data['name'], 30), T['CYAN'], esc(f"@{data['username']} \u00b7 profile overview"))}
+{header(T, w, h, truncate(data['name'], 30), T['CYAN'], profile_subtitle)}
 <g transform="translate({cx}, {cy})">
   <circle r="{rr}" fill="none" stroke="{T['GRID']}" stroke-width="7"/>
   <circle r="{rr}" fill="none" stroke="url(#ringGrad)" stroke-width="7" stroke-linecap="round"
