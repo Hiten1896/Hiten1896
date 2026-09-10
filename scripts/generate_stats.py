@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-GitHub Profile Stats Generator
+GitHub Profile Stats Generator — "Mission Control" redesign
 Generates dark + light versions of: stats, streak, langs cards.
 All numbers are REAL (GitHub GraphQL API). No fake fallback data —
 but if the API call fails, an "unavailable" placeholder card is
@@ -11,6 +11,7 @@ Theme switching is done in README via <picture> + prefers-color-scheme.
 
 import os
 import sys
+import math
 import requests
 from datetime import datetime, timedelta, timezone
 from collections import defaultdict
@@ -23,37 +24,44 @@ USERNAME = os.getenv("GITHUB_USER", "Hiten1896")
 API_URL = "https://api.github.com/graphql"
 
 # ─────────────────────────────────────────────
-# THEMES
+# THEMES — richer, more saturated "mission control" palette
 # ─────────────────────────────────────────────
 THEMES = {
     "dark": {
-        "BG":     "#0d1117",
-        "PANEL":  "#161b22",
-        "BORDER": "#30363d",
-        "TEXT": "#e6edf3",
-        "MUTED":  "#8b949e",
-        "GREEN":  "#3fb950",
-        "RED":    "#f85149",
-        "CYAN":   "#39d0d8",
-        "VIOLET": "#a371f7",
-        "AMBER":  "#e3b341",
-        "PINK":   "#f472b6",
-        "HEAT":   ["#161b22", "#0e4429", "#006d32", "#26a641", "#39d353"],
-        "LIGHTS": ["#ff5f57", "#febc2e", "#28c840"],
+        "BG":      "#05070d",
+        "PANEL":   "#0a0e1a",
+        "PANEL2":  "#0d1220",
+        "BORDER":  "#1c2333",
+        "GRID":    "#141a2a",
+        "TEXT":    "#eef2ff",
+        "MUTED":   "#7684a3",
+        "GREEN":   "#2fe6a8",
+        "RED":     "#ff5f7e",
+        "CYAN":    "#3ee8ff",
+        "VIOLET":  "#a78bfa",
+        "AMBER":   "#ffb454",
+        "PINK":    "#ff7ad9",
+        "BLUE":    "#5b8cff",
+        "HEAT":    ["#141a2a", "#123b45", "#0d6a75", "#12aebd", "#3ee8ff"],
+        "GLOW":    "#3ee8ff",
     },
     "light": {
-        "PANEL":  "#f6f8fa",
-        "BORDER": "#d0d7de",
-        "TEXT":   "#1f2328",
-        "MUTED":  "#656d76",
-        "GREEN":  "#1a7f37",
-        "RED":    "#cf222e",
-        "CYAN":   "#0969da",
-        "VIOLET": "#8250df",
-        "AMBER":  "#9a6700",
-        "PINK":   "#bf3989",
-        "HEAT":   ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"],
-        "LIGHTS": ["#ff5f57", "#febc2e", "#28c840"],
+        "BG":      "#ffffff",
+        "PANEL":   "#f9fafc",
+        "PANEL2":  "#f1f3f9",
+        "BORDER":  "#dbe1ee",
+        "GRID":    "#e9ecf5",
+        "TEXT":    "#141a2e",
+        "MUTED":   "#5b6788",
+        "GREEN":   "#0f9d6b",
+        "RED":     "#e0355b",
+        "CYAN":    "#0894b3",
+        "VIOLET":  "#7c5cea",
+        "AMBER":   "#c9791a",
+        "PINK":    "#d4459a",
+        "BLUE":    "#3059d9",
+        "HEAT":    ["#eef1f8", "#bfe6ec", "#7dcedd", "#2fabc4", "#0894b3"],
+        "GLOW":    "#0894b3",
     },
 }
 
@@ -72,21 +80,50 @@ def css(theme):
     return f"text {{ font-family: {FONT_FAMILY}; }}"
 
 
+def esc(text):
+    """Escape XML-special characters for safe embedding in SVG text nodes."""
+    return (str(text).replace("&", "&amp;").replace("<", "&lt;")
+            .replace(">", "&gt;"))
+
+
 def truncate(text, max_chars):
-    """Prevent long language/labels from overflowing their column."""
-    if len(text) <= max_chars:
-        return text
-    return text[: max_chars - 1].rstrip() + "\u2026"
+    """Truncate then escape — all text passed through here is safe to embed."""
+    text = str(text)
+    if len(text) > max_chars:
+        text = text[: max_chars - 1].rstrip() + "\u2026"
+    return esc(text)
 
 
-def editor_chrome(T, w, h, title, accent):
+def header(T, w, h, title, accent, subtitle=""):
+    """Mission-control style header: hex badge + title, no traffic-light
+    chrome — replaces the old 'editor window' look entirely."""
     return f"""
-  <rect x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="10" fill="{T['PANEL']}" stroke="{T['BORDER']}"/>
-  <line x1="0.5" y1="30" x2="{w-0.5}" y2="30" stroke="{T['BORDER']}"/>
-  <circle cx="18" cy="15.5" r="5" fill="{T['LIGHTS'][0]}"/>
-  <circle cx="34" cy="15.5" r="5" fill="{T['LIGHTS'][1]}"/>
-  <circle cx="50" cy="15.5" r="5" fill="{T['LIGHTS'][2]}"/>
-  <circle cx="{w-16}" cy="15.5" r="3.5" fill="{accent}"/>"""
+  <rect x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="14" fill="{T['PANEL']}" stroke="{T['BORDER']}"/>
+  <rect x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="14" fill="url(#edgeGlow)" opacity="0.5"/>
+  <g transform="translate(24, 22)">
+    <polygon points="9,0 18,5 18,15 9,20 0,15 0,5" fill="none" stroke="{accent}" stroke-width="1.6"/>
+    <circle cx="9" cy="10" r="2.6" fill="{accent}"/>
+  </g>
+  <text x="46" y="28" font-size="12.5" font-weight="800" letter-spacing="0.3" fill="{T['TEXT']}">{esc(title)}</text>
+  <text x="46" y="41" font-size="8.5" letter-spacing="0.5" fill="{T['MUTED']}">{esc(subtitle)}</text>
+  <line x1="24" y1="52" x2="{w-24}" y2="52" stroke="{T['BORDER']}"/>"""
+
+
+def defs_block(T):
+    return f"""<defs>
+  <radialGradient id="edgeGlow" cx="15%" cy="0%" r="80%">
+    <stop offset="0%" stop-color="{T['GLOW']}" stop-opacity="0.10"/>
+    <stop offset="100%" stop-color="{T['GLOW']}" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="{T['CYAN']}" stop-opacity="0.32"/>
+    <stop offset="100%" stop-color="{T['CYAN']}" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="{T['CYAN']}"/>
+    <stop offset="100%" stop-color="{T['VIOLET']}"/>
+  </linearGradient>
+</defs>"""
 
 
 # ─────────────────────────────────────────────
@@ -264,8 +301,8 @@ def calculate_activity_insights(days):
 
 
 def render_heatmap(T, days, max_w, max_h):
-    """Render the contribution heatmap scaled to fit exactly within
-    max_w x max_h (no overflow, whatever the account's history length)."""
+    """Same flat grid, but cells are diamonds/rounded-squares with a subtle
+    glow on the hottest days for a more 'radar' feel."""
     if not days:
         return "", 0, 0
 
@@ -278,9 +315,7 @@ def render_heatmap(T, days, max_w, max_h):
     max_weeks = max(week_cols.keys()) + 1 if week_cols else 1
     rows = 7
 
-    # Solve for the largest cell size (with a fixed gap ratio) that fits
-    # the allotted box, so the heatmap never overflows its card.
-    gap_ratio = 0.24  # gap as a fraction of cell size
+    gap_ratio = 0.26
     cell_w = max_w / (max_weeks + max_weeks * gap_ratio)
     cell_h = max_h / (rows + rows * gap_ratio)
     cell = max(2.0, min(cell_w, cell_h, 8.0))
@@ -296,8 +331,10 @@ def render_heatmap(T, days, max_w, max_h):
     rects = []
     for wk in range(max_weeks):
         for pos, d in enumerate(week_cols.get(wk, [])):
+            hot = d["count"] > 9
+            glow = f' filter="url(#dotGlow)"' if hot else ""
             rects.append(f'<rect x="{wk*(cell+gap):.1f}" y="{pos*(cell+gap):.1f}" '
-                         f'width="{cell:.1f}" height="{cell:.1f}" rx="1.5" fill="{color(d["count"])}"/>')
+                         f'width="{cell:.1f}" height="{cell:.1f}" rx="{cell*0.3:.1f}" fill="{color(d["count"])}"{glow}/>')
 
     total_w = max_weeks * (cell + gap) - gap
     total_h = rows * (cell + gap) - gap
@@ -305,45 +342,37 @@ def render_heatmap(T, days, max_w, max_h):
 
 
 # ─────────────────────────────────────────────
-# CARD 1: STATS (profile-level only)
+# CARD 1: STATS — radial "mission control" layout
 # ─────────────────────────────────────────────
 def generate_stats_svg(data, T):
-    """Redesigned stats card.
-
-    Layout, top to bottom:
-      - identity row: name/handle on the left, a big rank ring on the right
-      - a full-width weekly activity graph (area + line, not bars) as the
-        visual centerpiece, with the contributions total as an overlaid stat
-      - a clean 4-up metric strip along the bottom (no divider line clutter,
-        no "commits" metric): Stars, Pull Requests, Followers, Repos
-    """
     w, h = 560, 300
     rank_letter, rank_pct, score = calculate_rank(data)
+    pct = max(0, min(100, round(score)))
 
     days = data["days"]
     weekly = [sum(days[i]["count"] for i in range(s, min(s+7, len(days))))
               for s in range(0, max(1, len(days)-6), 7)]
-    last16 = weekly[-16:] if len(weekly) >= 16 else weekly
-    smax = max(last16) or 1
-    n = max(1, len(last16))
+    last20 = weekly[-20:] if len(weekly) >= 20 else weekly
+    smax = max(last20) or 1
+    n = max(1, len(last20))
 
-    # Area/line chart spans the full card width for a bigger visual anchor.
-    gx, gy, gw, gh = 28, 116, w - 56, 62
-    pts = []
-    for i, v in enumerate(last16):
-        px = gx + (i / max(1, n - 1)) * gw if n > 1 else gx
-        py = gy + gh - (v / smax) * gh
-        pts.append((px, py))
-    line_path = "M " + " L ".join(f"{px:.1f} {py:.1f}" for px, py in pts)
-    area_path = (line_path + f" L {pts[-1][0]:.1f} {gy+gh:.1f} "
-                 f"L {pts[0][0]:.1f} {gy+gh:.1f} Z")
-    dots = "".join(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="2.2" fill="{T["CYAN"]}"/>'
-                    for px, py in pts)
+    # Sparkline as vertical glow-bars instead of an area/line chart —
+    # sits behind the metric strip like an EQ readout.
+    gx, gy, gw, gh = 300, 66, 232, 150
+    bar_gap = 3
+    bar_w = (gw - bar_gap * (n - 1)) / n if n > 0 else gw
+    bars = []
+    for i, v in enumerate(last20):
+        bh = max(3, (v / smax) * gh)
+        bx = gx + i * (bar_w + bar_gap)
+        by = gy + gh - bh
+        t = i / max(1, n - 1)
+        col = T["CYAN"] if t < 0.5 else T["VIOLET"]
+        bars.append(f'<rect x="{bx:.1f}" y="{by:.1f}" width="{bar_w:.1f}" height="{bh:.1f}" rx="{bar_w/2:.1f}" fill="{col}" opacity="{0.35+0.65*t:.2f}"/>')
 
-    # Rank ring, top-right — larger and the clear focal point.
-    pct = max(0, min(100, round(score)))
-    rr, cx, cy = 40, w - 76, 62
-    circ = 2 * 3.14159265 * rr
+    # Rank ring — bigger, gradient stroke, left-of-center focal point.
+    rr, cx, cy = 54, 94, 128
+    circ = 2 * math.pi * rr
     offset = circ * (1 - pct / 100)
 
     metrics = [
@@ -352,7 +381,7 @@ def generate_stats_svg(data, T):
         ("FOLLOWERS", data["followers"],   T["CYAN"],   f"{data['account_age_years']}y on GitHub"),
         ("REPOS",     data["total_repos"], T["PINK"],   f"{data['total_forks']} forks"),
     ]
-    strip_y = 226
+    strip_y = 254
     col_w = (w - 56) / 4
     cells = []
     for i, (label, val, color, sub) in enumerate(metrics):
@@ -360,38 +389,34 @@ def generate_stats_svg(data, T):
         cells.append(f"""
   <circle cx="{mx+5:.0f}" cy="{strip_y-5:.0f}" r="4" fill="{color}"/>
   <text x="{mx+16:.0f}" y="{strip_y-1:.0f}" font-size="9.5" font-weight="800" letter-spacing="0.4" fill="{T['MUTED']}">{label}</text>
-  <text x="{mx:.0f}" y="{strip_y+24:.0f}" font-size="24" font-weight="700" fill="{T['TEXT']}">{val}</text>
-  <text x="{mx:.0f}" y="{strip_y+40:.0f}" font-size="9" fill="{T['MUTED']}">{truncate(str(sub), 20)}</text>""")
+  <text x="{mx:.0f}" y="{strip_y+22:.0f}" font-size="22" font-weight="700" fill="{T['TEXT']}">{val}</text>
+  <text x="{mx:.0f}" y="{strip_y+36:.0f}" font-size="8.5" fill="{T['MUTED']}">{truncate(str(sub), 20)}</text>""")
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
 <style>{css(T)}</style>
-<defs>
-  <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0%" stop-color="{T['CYAN']}" stop-opacity="0.35"/>
-    <stop offset="100%" stop-color="{T['CYAN']}" stop-opacity="0"/>
-  </linearGradient>
-</defs>
-{editor_chrome(T, w, h, f"~/{data['username']}/report.md", T['CYAN'])}
-<text x="28" y="60" font-size="21" font-weight="700" fill="{T['TEXT']}">{truncate(data['name'], 24)}</text>
-<text x="28" y="80" font-size="11.5" font-weight="700" fill="{T['CYAN']}">@{data['username']}</text>
+{defs_block(T)}
+<filter id="dotGlow" x="-100%" y="-100%" width="300%" height="300%">
+  <feGaussianBlur stdDeviation="1.4" result="b"/>
+  <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+{header(T, w, h, truncate(data['name'], 30), T['CYAN'], esc(f"@{data['username']} \u00b7 profile overview"))}
 <g transform="translate({cx}, {cy})">
-  <circle r="{rr}" fill="none" stroke="{T['BORDER']}" stroke-width="6"/>
-  <circle r="{rr}" fill="none" stroke="{T['VIOLET']}" stroke-width="6" stroke-linecap="round"
+  <circle r="{rr}" fill="none" stroke="{T['GRID']}" stroke-width="7"/>
+  <circle r="{rr}" fill="none" stroke="url(#ringGrad)" stroke-width="7" stroke-linecap="round"
     stroke-dasharray="{circ:.2f}" stroke-dashoffset="{offset:.2f}" transform="rotate(-90)"/>
-  <text y="6" font-size="19" font-weight="700" fill="{T['TEXT']}" text-anchor="middle">{rank_letter}</text>
-  <text y="20" font-size="6.5" letter-spacing="0.4" fill="{T['MUTED']}" text-anchor="middle">{rank_pct}</text>
+  <text y="-4" font-size="30" font-weight="800" fill="{T['TEXT']}" text-anchor="middle">{rank_letter}</text>
+  <text y="16" font-size="8" letter-spacing="0.6" fill="{T['MUTED']}" text-anchor="middle">{rank_pct}</text>
 </g>
-<text x="28" y="100" font-size="9.5" font-weight="800" letter-spacing="0.4" fill="{T['MUTED']}">{data['total_conts']} CONTRIBUTIONS &#183; LAST 16 WEEKS</text>
-<path d="{area_path}" fill="url(#areaFill)"/>
-<path d="{line_path}" fill="none" stroke="{T['CYAN']}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-{dots}
-<line x1="28" y1="{strip_y-28}" x2="{w-28}" y2="{strip_y-28}" stroke="{T['BORDER']}"/>
+<text x="{cx}" y="{cy+rr+30}" font-size="9" letter-spacing="0.4" fill="{T['MUTED']}" text-anchor="middle">{data['total_conts']} CONTRIBUTIONS / YEAR</text>
+<text x="{gx}" y="56" font-size="9.5" font-weight="800" letter-spacing="0.4" fill="{T['MUTED']}">WEEKLY ACTIVITY &#183; LAST 20W</text>
+{"".join(bars)}
+<line x1="28" y1="{strip_y-30}" x2="{w-28}" y2="{strip_y-30}" stroke="{T['BORDER']}"/>
 {"".join(cells)}
 </svg>"""
 
 
 # ─────────────────────────────────────────────
-# CARD 2: STREAK + ACTIVITY RHYTHM
+# CARD 2: STREAK + ACTIVITY RHYTHM — radar dial layout
 # ─────────────────────────────────────────────
 def generate_streak_svg(data, T):
     w, h = 496, 340
@@ -400,32 +425,46 @@ def generate_streak_svg(data, T):
     a = calculate_activity_insights(data["days"])
 
     heatmap_area_w = w - 56
-    heatmap_area_h = 70
+    heatmap_area_h = 66
     heatmap, heat_w, heat_h = render_heatmap(T, data["days"], heatmap_area_w, heatmap_area_h)
-    # center the heatmap horizontally within its reserved area
     heat_x_offset = max(0, (heatmap_area_w - heat_w) / 2)
 
     legend_x = w - 150
-    legend = "".join(f'<rect x="{legend_x+i*13}" width="9" height="9" rx="2" fill="{c}"/>'
+    legend = "".join(f'<rect x="{legend_x+i*13}" width="9" height="9" rx="2.5" fill="{c}"/>'
                      for i, c in enumerate(T["HEAT"]))
 
-    def metric(x, label, value, color, sub):
+    def metric(x, y, label, value, color, sub):
         return f"""
-  <text x="{x}" font-size="8.5" letter-spacing="0.6" fill="{T['MUTED']}">{label}</text>
-  <text x="{x}" y="22" font-size="19" font-weight="700" fill="{color}">{value}</text>
-  <text x="{x}" y="37" font-size="8" fill="{T['MUTED']}">{truncate(str(sub), 24)}</text>"""
+  <text x="{x}" y="{y}" font-size="8.5" letter-spacing="0.6" fill="{T['MUTED']}">{label}</text>
+  <text x="{x}" y="{y+21}" font-size="19" font-weight="700" fill="{color}">{value}</text>
+  <text x="{x}" y="{y+35}" font-size="8" fill="{T['MUTED']}">{truncate(str(sub), 24)}</text>"""
 
-    heatmap_y = 48
+    heatmap_y = 76
     legend_y = heatmap_y + heatmap_area_h + 14
     divider1_y = legend_y + 20
-    row1_y = divider1_y + 32
-    divider2_y = row1_y + 44
-    row2_y = divider2_y + 32
-    footer_y = row2_y + 48
+    row1_y = divider1_y + 26
+    divider2_y = row1_y + 46
+    row2_y = divider2_y + 26
+    footer_y = row2_y + 52
+
+    # Flame-style current-streak badge, top-right, replaces plain text.
+    flame_cx, flame_cy = w - 56, 30
+    flame_active = s["current_streak"] > 0
+    flame_color = T["GREEN"] if flame_active else T["MUTED"]
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
 <style>{css(T)}</style>
-{editor_chrome(T, w, h, f"~/{data['username']}/streak.log", T['GREEN'])}
+{defs_block(T)}
+<filter id="dotGlow" x="-100%" y="-100%" width="300%" height="300%">
+  <feGaussianBlur stdDeviation="1.4" result="b"/>
+  <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+{header(T, w, h, "Streak & Rhythm", T['GREEN'], f"{s['total_active']} active days this year")}
+<g transform="translate({flame_cx}, {flame_cy})">
+  <path d="M0,-10 C4,-6 5,-1 2,2 C4,0 5,3 2,6 C4,5 3,9 0,10 C-3,9 -4,5 -2,6 C-5,3 -4,0 -2,2 C-5,-1 -4,-6 0,-10 Z"
+    fill="{flame_color}" opacity="{1.0 if flame_active else 0.35}"/>
+  <text x="14" y="4" font-size="13" font-weight="800" fill="{T['TEXT']}">{s['current_streak']}d</text>
+</g>
 <g transform="translate({28+heat_x_offset:.1f}, {heatmap_y})">{heatmap}</g>
 <g transform="translate(0, {legend_y})">
   <text x="28" font-size="9" fill="{T['MUTED']}">less</text>
@@ -433,45 +472,56 @@ def generate_streak_svg(data, T):
   <text x="{legend_x + 5*13 + 8}" y="8" font-size="9" fill="{T['MUTED']}">more</text>
 </g>
 <line x1="28" y1="{divider1_y}" x2="{w-28}" y2="{divider1_y}" stroke="{T['BORDER']}"/>
-<g transform="translate(28, {row1_y})">
-    {metric(0,   "LONGEST STREAK",  s['longest_streak'], T['TEXT'],   s['long_range'])}
-    {metric(150, "LONGEST GAP",     a['longest_gap'],    T['RED'],    "days without activity")}
-  {metric(300, "CURRENT STREAK",  s['current_streak'], T['GREEN'],  s['curr_range'])}
+<g>
+    {metric(28,  row1_y, "LONGEST STREAK",  s['longest_streak'], T['TEXT'],   s['long_range'])}
+    {metric(178, row1_y, "LONGEST GAP",     a['longest_gap'],    T['RED'],    "days without activity")}
+  {metric(328, row1_y, "CURRENT STREAK",  s['current_streak'], T['GREEN'],  s['curr_range'])}
 </g>
 <line x1="28" y1="{divider2_y}" x2="{w-28}" y2="{divider2_y}" stroke="{T['BORDER']}"/>
-<g transform="translate(28, {row2_y})">
-  {metric(0,   "BUSIEST DAY",      s['best_day_count'], T['VIOLET'], s['best_day_date'] or '-')}
-  {metric(150, "BUSIEST MONTH",    a['busiest_month'],  T['CYAN'],   f"{a['busiest_month_count']} contributions")}
-  {metric(300, "WEEKEND ACTIVITY", f"{a['weekend_pct']}%", T['AMBER'],   f"peak: {a['top_weekday']}")}
+<g>
+  {metric(28,  row2_y, "BUSIEST DAY",      s['best_day_count'], T['VIOLET'], s['best_day_date'] or '-')}
+  {metric(178, row2_y, "BUSIEST MONTH",    a['busiest_month'],  T['CYAN'],   f"{a['busiest_month_count']} contributions")}
+  {metric(328, row2_y, "WEEKEND ACTIVITY", f"{a['weekend_pct']}%", T['AMBER'],   f"peak: {a['top_weekday']}")}
 </g>
-<text x="28" y="{footer_y}" font-size="8.5" fill="{T['MUTED']}">{s['total_active']} active days &#183; avg {s['avg_per_active_day']}/day &#183; last 12 months</text>
+<text x="28" y="{footer_y}" font-size="8.5" fill="{T['MUTED']}">avg {s['avg_per_active_day']} contributions / active day &#183; trailing 12 months</text>
 </svg>"""
 
 
 # ─────────────────────────────────────────────
-# CARD 3: LANGUAGES (real repo data)
+# CARD 3: LANGUAGES — orbit/ring layout
 # ─────────────────────────────────────────────
 def generate_langs_svg(data, T):
     w = 496
     langs = sorted(data["langs"].items(), key=lambda x: x[1], reverse=True)[:12]
     total = sum(v for _, v in langs) or 1
     rows = max(1, (len(langs) + 2) // 3)
-    items_top = 130
+    items_top = 158
     row_h = 40
     items_bottom = items_top + (rows - 1) * row_h
-    h = max(220, items_bottom + 40)
+    h = max(240, items_bottom + 40)
 
-    bar_y, bar_x, bar_w, bar_h = 76, 28, w - 56, 14
-    segs, xoff = [], bar_x
+    # Donut ring instead of a flat segmented bar.
+    ring_cx, ring_cy, ring_r, ring_sw = 70, 100, 46, 15
+    circ = 2 * math.pi * ring_r
+    segs, start = [], -90.0
     for name, v in langs:
-        seg_w = (v / total) * bar_w
+        frac = v / total
+        sweep = frac * 360
         color = LANG_COLORS.get(name, "#8b949e")
-        segs.append(f'<rect x="{xoff:.1f}" y="{bar_y}" width="{max(seg_w, 0):.1f}" height="{bar_h}" fill="{color}"/>')
-        xoff += seg_w
+        dash = circ * frac
+        gap = circ - dash
+        segs.append(
+            f'<circle cx="0" cy="0" r="{ring_r}" fill="none" stroke="{color}" stroke-width="{ring_sw}" '
+            f'stroke-dasharray="{dash:.2f} {gap:.2f}" stroke-dashoffset="{-(start/360*circ):.2f}" transform="rotate(-90)"/>'
+        )
+        start += sweep
+
+    top_name = langs[0][0] if langs else "-"
+    top_pct = round(langs[0][1] / total * 100) if langs else 0
 
     items = []
     col_w = (w - 56) / 3
-    max_name_chars = 14  # keeps long names (e.g. "Jupyter Notebook") from overlapping the next column
+    max_name_chars = 14
     for i, (name, v) in enumerate(langs):
         ix = 28 + (i % 3) * col_w
         iy = items_top + (i // 3) * row_h
@@ -483,10 +533,18 @@ def generate_langs_svg(data, T):
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
 <style>{css(T)}</style>
-{editor_chrome(T, w, h, f"~/{data['username']}/languages.json", T['VIOLET'])}
-<text x="28" y="52" font-size="12" font-weight="700" fill="{T['TEXT']}">Languages across {data['total_repos']} public repos</text>
-{"".join(segs)}
-<rect x="{bar_x}" y="{bar_y}" width="{bar_w}" height="{bar_h}" rx="3" fill="none" stroke="{T['BORDER']}"/>
+{defs_block(T)}
+{header(T, w, h, "Language Mix", T['VIOLET'], f"across {data['total_repos']} public repos")}
+<g transform="translate({ring_cx}, {ring_cy})">
+  <circle r="{ring_r}" fill="none" stroke="{T['GRID']}" stroke-width="{ring_sw}"/>
+  {"".join(segs)}
+  <text y="-3" font-size="15" font-weight="800" fill="{T['TEXT']}" text-anchor="middle">{top_pct}%</text>
+  <text y="12" font-size="7.5" letter-spacing="0.3" fill="{T['MUTED']}" text-anchor="middle">{truncate(top_name, 12)}</text>
+</g>
+<text x="150" y="86" font-size="9.5" font-weight="800" letter-spacing="0.4" fill="{T['MUTED']}">TOP LANGUAGE</text>
+<text x="150" y="108" font-size="18" font-weight="700" fill="{T['TEXT']}">{truncate(top_name, 20)}</text>
+<text x="150" y="126" font-size="9" fill="{T['MUTED']}">{len(langs)} languages tracked across all owned repos</text>
+<line x1="28" y1="{items_top-30}" x2="{w-28}" y2="{items_top-30}" stroke="{T['BORDER']}"/>
 {"".join(items)}
 </svg>"""
 
@@ -497,7 +555,8 @@ def generate_langs_svg(data, T):
 def render_error_svg(T, w, h, title):
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
 <style>{css(T)}</style>
-{editor_chrome(T, w, h, title, T['RED'])}
+{defs_block(T)}
+{header(T, w, h, title, T['RED'], "temporarily unavailable")}
 <text x="{w/2}" y="{h/2}" font-size="13" fill="{T['RED']}" text-anchor="middle">API unavailable &#8212; stats could not be fetched</text>
 <text x="{w/2}" y="{h/2+22}" font-size="10" fill="{T['MUTED']}" text-anchor="middle">will retry on next scheduled run</text>
 </svg>"""
@@ -507,15 +566,13 @@ def render_error_svg(T, w, h, title):
 # MAIN — generates dark AND light versions
 # ─────────────────────────────────────────────
 def main():
-    cards = [("stats.svg", 560, 300, generate_stats_svg, "~/report.md"),
-             ("streak.svg", 496, 340, generate_streak_svg, "~/streak.log"),
-             ("langs.svg", 496, 280, generate_langs_svg, "~/languages.json")]
+    cards = [("stats.svg", 560, 300, generate_stats_svg, "Profile Overview"),
+             ("streak.svg", 496, 340, generate_streak_svg, "Streak & Rhythm"),
+             ("langs.svg", 496, 280, generate_langs_svg, "Language Mix")]
 
     try:
         data = fetch_github_stats()
     except Exception as e:
-        # Don't fail the whole workflow — write placeholder cards instead,
-        # so the README doesn't end up with broken/missing images.
         print(f"::warning::{e}", file=sys.stderr)
         for theme_name, T in THEMES.items():
             suffix = "" if theme_name == "dark" else "-light"

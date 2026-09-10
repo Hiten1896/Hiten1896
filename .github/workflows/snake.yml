@@ -29,9 +29,12 @@ jobs:
         id: snake-gif
         with:
           github_user_name: ${{ github.repository_owner }}
+          # Palette matches the new "mission control" stat-card theme
+          # (cyan/violet accents, dark navy background) so the whole
+          # profile reads as one consistent visual system.
           outputs: |
-            year.svg?color_snake=#39d0d8&color_dots=#161b22,#0e4429,#006d32,#26a641,#39d353&color_background=#0d1117
-            year-light.svg?color_snake=#0969da&color_dots=#ebedf0,#9be9a8,#40c463,#30a14e,#216e39&color_background=#ffffff
+            year.svg?color_snake=#3ee8ff&color_dots=#141a2a,#123b45,#0d6a75,#12aebd,#3ee8ff&color_background=#05070d&gradient=0:#3ee8ff,50:#a78bfa,100:#ff7ad9
+            year-light.svg?color_snake=#0894b3&color_dots=#eef1f8,#bfe6ec,#7dcedd,#2fabc4,#0894b3&color_background=#ffffff&gradient=0:#0894b3,50:#7c5cea,100:#d4459a
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
