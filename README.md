@@ -118,20 +118,14 @@ A sleek web application for movie searching, tracking streaming and music availa
 
 ---
 
-## 📊 GitHub Analytics
+## 📊 Contribution Activity
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./stats.svg" />
-    <source media="(prefers-color-scheme: light)" srcset="./stats-light.svg" />
-    <img src="./stats.svg" alt="GitHub Stats" width="100%" />
-  </picture>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./langs.svg" />
-    <source media="(prefers-color-scheme: light)" srcset="./langs-light.svg" />
-    <img src="./langs.svg" alt="Top Languages" width="100%" />
+    <source media="(prefers-color-scheme: dark)" srcset="./snake.gif" />
+    <source media="(prefers-color-scheme: light)" srcset="./snake-light.gif" />
+    <img src="./snake.gif" alt="Contribution Snake" width="100%" />
   </picture>
 </p>
-
 
 ---

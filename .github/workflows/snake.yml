@@ -1,0 +1,49 @@
+name: Generate Snake
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: profile-stats
+  cancel-in-progress: false
+
+jobs:
+  generate-snake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate the snake animation (GIF — animates on GitHub, unlike SVG+CSS)
+        uses: Platane/snk@v3
+        id: snake-gif
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          # Palette matches the streak card's heatmap HEAT colors exactly,
+          # for visual consistency between the static heatmap and the
+          # animated snake. GIF output is used (not SVG) because GitHub's
+          # README image proxy strips embedded <style>/CSS animation from
+          # SVGs, so an SVG-based snake would only ever render as a single
+          # static frame. GIFs animate natively and load fast since they're
+          # just image data, no script/style execution required.
+          outputs: |
+            snake.gif?color_snake=#3ee8ff&color_dots=#141a2a,#123b45,#0d6a75,#12aebd,#3ee8ff&color_background=#05070d
+            snake-light.gif?color_snake=#0894b3&color_dots=#eef1f8,#bfe6ec,#7dcedd,#2fabc4,#0894b3&color_background=#ffffff
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Push generated snake to main
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "chore: update contribution snake animation [skip ci]"
+          file_pattern: snake.gif snake-light.gif
