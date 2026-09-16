@@ -1,4 +1,4 @@
-<div align="center">
+﻿<div align="center">
   <!-- Capsule Render Wave Banner -->
   <img src="https://capsule-render.vercel.app/api?type=waving&color=7B2CBF&height=200&section=header&text=Hiten%20Sharma&fontSize=48&fontColor=ffffff&animation=twinkle" width="100%" />
 
@@ -116,16 +116,38 @@ A sleek web application for movie searching, tracking streaming and music availa
   * Implemented secure environment configurations to protect third-party API keys.
 </details>
 
+<details>
+<summary><b>👾 Pac-Man Contribution Graph – Animated GitHub Activity Visualizer</b></summary>
+<br />
+A custom GitHub Actions pipeline that turns the year's contribution calendar into an animated Pac-Man maze, replacing the classic "snake" README animation with a distinct three-tier color scheme built for legibility across every display type.
+
+| Stack | Scale | Performance | Security | Impact | Repository |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Python, GitHub Actions, GraphQL API, SVG | Scheduled CI workflow | Single self-contained animated SVG, no runtime dependencies | Uses scoped `GITHUB_TOKEN`, no external secrets | Distinct-hue, display-agnostic activity visualization | [Hiten1896](https://github.com/Hiten1896) |
+
+* **Engineering Highlights:**
+  * Fetches the contribution calendar via GitHub's GraphQL API and builds a 52×7 activity grid.
+  * Computes a full traversal path so Pac-Man eats every active day in sequence, trailed by an animated ghost.
+  * Colors low/mid/high activity with three distinct hues — amber `#FFC300`, cyan `#00E5FF`, magenta `#FF2FB0` — rather than shades of one color, tuned for contrast on OLED, AMOLED, LCD, laptop, and mobile screens.
+  * Runs daily via cron and auto-commits the refreshed SVG back to the profile repo.
+</details>
+
 ---
 
-## 📊 Contribution Activity
+## 👾 Contribution Activity — Pac-Man Edition
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./snake.gif" />
-    <source media="(prefers-color-scheme: light)" srcset="./snake-light.gif" />
-    <img src="./snake.gif" alt="Contribution Snake" width="100%" />
+    <source media="(prefers-color-scheme: dark)" srcset="./pacman.svg" />
+    <source media="(prefers-color-scheme: light)" srcset="./pacman-light.svg" />
+    <img src="./pacman.svg" alt="Pac-Man Contribution Graph" width="100%" />
   </picture>
+</p>
+
+<p align="center">
+  <sub>
+    🟡 Low activity &nbsp;&nbsp;•&nbsp;&nbsp; 🔵 Mid activity &nbsp;&nbsp;•&nbsp;&nbsp; 🩷 High activity
+  </sub>
 </p>
 
 ---
