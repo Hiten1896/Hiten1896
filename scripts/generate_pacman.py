@@ -32,15 +32,15 @@ GAP = 3
 STEP = CELL + GAP
 MARGIN = 20
 
-# --- Activity tier colors: intentionally distinct hues, not shades ---
-COLOR_EMPTY_DARK = "#1b1f2a"
-COLOR_EMPTY_LIGHT = "#e9edf3"
-COLOR_LOW = "#FFC300"   # amber/gold
-COLOR_MID = "#00E5FF"   # bright cyan
-COLOR_HIGH = "#FF2FB0"  # magenta/pink
+# --- GitHub-native contribution palette ---
+COLOR_EMPTY_DARK = "#161b22"
+COLOR_EMPTY_LIGHT = "#ebedf0"
+COLOR_LOW = "#9be9a8"    # GitHub green 1
+COLOR_MID = "#40c463"    # GitHub green 2
+COLOR_HIGH = "#216e39"   # GitHub green 4
 
-PACMAN_COLOR = "#FFE600"
-GHOST_COLOR = "#7B2CBF"  # matches the profile's purple banner accent
+PACMAN_COLOR = "#2ea043"
+GHOST_COLOR = "#1f883d"  # darker green to match GitHub contribution theme
 
 
 def fetch_calendar():
@@ -199,6 +199,23 @@ def render_svg(grid, path, dark=True):
                     f'</circle>'
                 )
 
+    # partition walls to create a table-like maze with visual sections
+    partition_color = "#3d4559" if dark else "#bcc5d1"
+    for group_start in range(0, weeks, 4):
+        group_end = min(weeks, group_start + 4)
+        x0 = MARGIN + group_start * STEP - 4
+        x1 = MARGIN + group_end * STEP - 4
+        for x in range(group_start, group_end):
+            line_x = MARGIN + x * STEP + CELL / 2
+            svg.append(
+                f'<line x1="{line_x}" y1="{grid_y0 - 6}" x2="{line_x}" y2="{grid_y0 + 7 * STEP + 6}" '
+                f'stroke="{partition_color}" stroke-width="2" opacity="0.75"/>'
+            )
+        svg.append(
+            f'<rect x="{x0}" y="{grid_y0 - 8}" width="{max(1, x1 - x0)}" height="{7 * STEP + 16}" '
+            f'fill="none" stroke="{partition_color}" stroke-width="2" rx="8" opacity="0.75"/>'
+        )
+
     # animation timing
     n = len(path)
     if n == 0:
@@ -224,8 +241,7 @@ def render_svg(grid, path, dark=True):
             f'dur="{total_duration:.2f}s" begin="0s" repeatCount="indefinite" fill="freeze"/>'
         )
 
-    # Pac-Man sprite (simple wedge circle) + motion
-    px0, py0 = points[0]
+    # Pac-Man sprite (one escape runner moving through partitions)
     svg.append(
         f'<g id="pacman">'
         f'<circle r="6.5" fill="{PACMAN_COLOR}"/>'
@@ -238,21 +254,24 @@ def render_svg(grid, path, dark=True):
         f'</g>'
     )
 
-    # Ghost trailing behind
-    ghost_offset = max(1, n // 12)
-    ghost_points = points[ghost_offset:] + points[:ghost_offset]
-    ghost_path_str = " ".join(f"{px:.1f},{py:.1f}" for px, py in ghost_points)
-    svg.append(
-        f'<g id="ghost">'
-        f'<path d="M-6,2 A6,6 0 1,1 6,2 L6,7 L3,5 L0,7 L-3,5 L-6,7 Z" fill="{GHOST_COLOR}"/>'
-        f'<circle cx="-2.3" cy="-1" r="1.6" fill="white"/>'
-        f'<circle cx="2.3" cy="-1" r="1.6" fill="white"/>'
-        f'<circle cx="-2.3" cy="-1" r="0.8" fill="#111"/>'
-        f'<circle cx="2.3" cy="-1" r="0.8" fill="#111"/>'
-        f'<animateMotion dur="{total_duration:.2f}s" repeatCount="indefinite" '
-        f'path="M{ghost_path_str.replace(" ", " L")}"/>'
-        f'</g>'
-    )
+    # multiple hunters weaving through the partitions
+    ghost_colors = ["#1f883d", "#2ea043", "#3fb950", "#66d98b", "#a6f3b5"]
+    for idx, color in enumerate(ghost_colors):
+        start_offset = max(1, n // (len(ghost_colors) + 2) * (idx + 1))
+        ghost_points = points[start_offset:] + points[:start_offset]
+        ghost_path_str = " ".join(f"{px:.1f},{py:.1f}" for px, py in ghost_points)
+        ghost_delay = (idx * total_duration) / len(ghost_colors)
+        svg.append(
+            f'<g id="ghost_{idx}">'
+            f'<path d="M-6,2 A6,6 0 1,1 6,2 L6,7 L3,5 L0,7 L-3,5 L-6,7 Z" fill="{color}"/>'
+            f'<circle cx="-2.3" cy="-1" r="1.6" fill="white"/>'
+            f'<circle cx="2.3" cy="-1" r="1.6" fill="white"/>'
+            f'<circle cx="-2.3" cy="-1" r="0.8" fill="#111"/>'
+            f'<circle cx="2.3" cy="-1" r="0.8" fill="#111"/>'
+            f'<animateMotion dur="{total_duration:.2f}s" begin="-{ghost_delay:.2f}s" repeatCount="indefinite" '
+            f'path="M{ghost_path_str.replace(" ", " L")}"/>'
+            f'</g>'
+        )
 
     svg.append("</svg>")
     return "\n".join(svg)
