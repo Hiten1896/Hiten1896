@@ -108,7 +108,7 @@ A sleek web application for movie searching, tracking streaming and music availa
 
 | Stack | Scale | Performance | Security | Impact | Repository |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-  | JavaScript, TMDB API, HTML5/CSS3 | Single Page Web App | Async API fetching with minimal latency | Encrypted environment API keys | Simplified discovery for users | [Hiten1896/Movie-Hunt](https://github.com/Hiten1896/Movie-Hunt) |
+  | JavaScript, TMDB API, HTML5/CSS3 | Single Page Web App | Async API fetching with minimal latency | Encrypted environment API keys | Simplified discovery for users | [Hiten1896/MyWay](https://github.com/Hiten1896/MyWay) |
 
 * **Engineering Highlights:**
   * Developed asynchronous API integration for real-time movie and music availability fetching.
