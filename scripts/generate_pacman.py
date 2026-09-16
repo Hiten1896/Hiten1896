@@ -82,10 +82,16 @@ def fetch_calendar():
 
     weeks = data["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"]
     grid = []
-    for w in weeks:
+    for i, w in enumerate(weeks):
         col = [d["contributionCount"] for d in w["contributionDays"]]
         if len(col) < 7:
-            col = [0] * (7 - len(col)) + col
+            missing = 7 - len(col)
+            if i == 0:
+                col = [0] * missing + col
+            elif i == len(weeks) - 1:
+                col = col + [0] * missing
+            else:
+                col = [0] * missing + col
         elif len(col) > 7:
             col = col[:7]
         grid.append(col)
@@ -120,9 +126,11 @@ def build_path(grid):
     motion stays continuous without long jumps."""
     path = []
     for x, col in enumerate(grid):
-        ys = range(len(col)) if x % 2 == 0 else range(len(col) - 1, -1, -1)
+        if not col:
+            continue
+        ys = range(7) if x % 2 == 0 else range(6, -1, -1)
         for y in ys:
-            if col[y] > 0:
+            if y < len(col) and col[y] > 0:
                 path.append((x, y))
     return path
 
