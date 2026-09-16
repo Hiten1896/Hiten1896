@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 ﻿PASTE_GENERATE_PACMAN_PY_CONTENT_HERE
 #!/usr/bin/env python3
+=======
+﻿#!/usr/bin/env python3
+>>>>>>> 103ea2c (feat: replace snake animation with Pac-Man contribution graph)
 """
 Generate an animated Pac-Man SVG from a GitHub contribution calendar.
 
