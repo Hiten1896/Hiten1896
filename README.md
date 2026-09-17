@@ -143,6 +143,4 @@ A GitHub Actions pipeline that turns the contribution calendar into an animated 
   </picture>
 </p>
 
-<sub>_Generated with [abozanona/pacman-contribution-graph](https://github.com/abozanona/pacman-contribution-graph)_</sub>
-
 ---
