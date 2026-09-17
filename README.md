@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
   <!-- Capsule Render Wave Banner -->
   <img src="https://capsule-render.vercel.app/api?type=waving&color=7B2CBF&height=200&section=header&text=Hiten%20Sharma&fontSize=48&fontColor=ffffff&animation=twinkle" width="100%" />
 
@@ -20,7 +20,7 @@
 
 ---
 
-## 👤 About Me
+## ðŸ‘¤ About Me
 
 <p align="left">
   <span style="font-size: 18px; line-height: 1.6;">
@@ -29,7 +29,7 @@
 </p>
 
 ---
-### 🧰 Tech Stack & Tools
+### ðŸ§° Tech Stack & Tools
 
 <p align="left">
   <b>Languages & Web Tech:</b><br />
@@ -67,10 +67,10 @@
 
 ---
 
-### 🚀 Featured Projects
+### ðŸš€ Featured Projects
 
 <details>
-<summary><b>🤖 RAG Document Agent – Enterprise Q&A System</b></summary>
+<summary><b>ðŸ¤– RAG Document Agent â€“ Enterprise Q&A System</b></summary>
 <br />
 An enterprise-grade Retrieval-Augmented Generation (RAG) backend built to ingest multi-page PDFs, perform semantic text chunking, and execute context-grounded Q&A with Google Gemini.
 
@@ -85,7 +85,7 @@ An enterprise-grade Retrieval-Augmented Generation (RAG) backend built to ingest
 </details>
 
 <details>
-<summary><b>🛡️ TrustGuard Pro – Digital Forensics Suite</b></summary>
+<summary><b>ðŸ›¡ï¸ TrustGuard Pro â€“ Digital Forensics Suite</b></summary>
 <br />
 
 A digital forensics suite built with React and Firebase designed to detect AI-generated media (Deepfakes) and analyze metadata manipulation.
@@ -102,13 +102,13 @@ A digital forensics suite built with React and Firebase designed to detect AI-ge
 </details>
 
 <details>
-<summary><b>🎬 MyWay – Movie & Music Availability Tracking App</b></summary>
+<summary><b>ðŸŽ¬ MyWay â€“ Movie & Music Availability Tracking App</b></summary>
 <br />
 A sleek web application for movie searching, tracking streaming and music availability, and aggregating media metadata.
 
 | Stack | Scale | Performance | Security | Impact | Repository |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-  | JavaScript, TMDB API, HTML5/CSS3 | Single Page Web App | Async API fetching with minimal latency | Encrypted environment API keys | Simplified discovery for users | [Hiten1896/MyWay](https://github.com/Hiten1896/MyWay) |
+  | JavaScript, TMDB API, HTML5/CSS3 | Single Page Web App | Async API fetching with minimal latency | Encrypted environment API keys | Simplified discovery for users | [Hiten1896/Movie-Hunt](https://github.com/Hiten1896/Movie-Hunt) |
 
 * **Engineering Highlights:**
   * Developed asynchronous API integration for real-time movie and music availability fetching.
@@ -117,37 +117,32 @@ A sleek web application for movie searching, tracking streaming and music availa
 </details>
 
 <details>
-<summary><b>👾 Pac-Man Contribution Graph – Animated GitHub Activity Visualizer</b></summary>
+<summary><b>ðŸ‘¾ Pac-Man Contribution Graph â€“ Animated GitHub Activity Visualizer</b></summary>
 <br />
-A custom GitHub Actions pipeline that turns the year's contribution calendar into an animated Pac-Man maze, replacing the classic "snake" README animation with a distinct three-tier color scheme built for legibility across every display type.
+A GitHub Actions pipeline that turns the contribution calendar into an animated Pac-Man maze SVG, replacing the classic "snake" README animation.
 
 | Stack | Scale | Performance | Security | Impact | Repository |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Python, GitHub Actions, GraphQL API, SVG | Scheduled CI workflow | Single self-contained animated SVG, no runtime dependencies | Uses scoped `GITHUB_TOKEN`, no external secrets | Distinct-hue, display-agnostic activity visualization | [Hiten1896](https://github.com/Hiten1896) |
+| GitHub Actions, GraphQL API, SVG | Scheduled CI workflow | Single animated SVG published to an `output` branch | Uses scoped `GITHUB_TOKEN`, no external secrets | Playful, self-updating activity visualization | [abozanona/pacman-contribution-graph](https://github.com/abozanona/pacman-contribution-graph) |
 
 * **Engineering Highlights:**
-  * Fetches the contribution calendar via GitHub's GraphQL API and builds a 52×7 activity grid.
-  * Computes a full traversal path so Pac-Man eats every active day in sequence, trailed by an animated ghost.
-  * Colors low/mid/high activity with three distinct hues — amber `#FFC300`, cyan `#00E5FF`, magenta `#FF2FB0` — rather than shades of one color, tuned for contrast on OLED, AMOLED, LCD, laptop, and mobile screens.
-  * Runs daily via cron and auto-commits the refreshed SVG back to the profile repo.
+  * Fetches the contribution calendar via GitHub's GraphQL API and generates an animated Pac-Man SVG.
+  * Publishes the SVG to a dedicated `output` branch via `crazy-max/ghaction-github-pages`.
+  * Runs daily via cron and on every push, auto-updating the profile graph with zero manual steps.
 </details>
 
 ---
 
-## 👾 Contribution Activity — Pac-Man Edition
+## ðŸ‘¾ My Contribution Graph
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./pacman.svg" />
-    <source media="(prefers-color-scheme: light)" srcset="./pacman-light.svg" />
-    <img src="./pacman.svg" alt="Pac-Man Contribution Graph" width="100%" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Hiten1896/Hiten1896/output/pacman-contribution-graph-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/Hiten1896/Hiten1896/output/pacman-contribution-graph.svg">
+    <img alt="pacman contribution graph" src="https://raw.githubusercontent.com/Hiten1896/Hiten1896/output/pacman-contribution-graph.svg">
   </picture>
 </p>
 
-<p align="center">
-  <sub>
-    🟡 Low activity &nbsp;&nbsp;•&nbsp;&nbsp; 🔵 Mid activity &nbsp;&nbsp;•&nbsp;&nbsp; 🩷 High activity
-  </sub>
-</p>
+<sub>_Generated with [abozanona/pacman-contribution-graph](https://github.com/abozanona/pacman-contribution-graph)_</sub>
 
 ---
