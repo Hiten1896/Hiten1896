@@ -1,4 +1,4 @@
-â¸name: Generate Pac-Man Contribution Graph
+name: generate arcade contribution graphs
 
 on:
   schedule:
@@ -8,44 +8,24 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
-
-concurrency:
-  group: profile-stats
-  cancel-in-progress: false
-
 jobs:
-  generate-pacman:
+  generate:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: generate contribution graph SVGs
+        uses: abozanona/pacman-contribution-graph@main
         with:
-          python-version: "3.12"
+          github_user_name: ${{ github.repository_owner }}
+          games: "pacman"
 
-      - name: Generate the Pac-Man animation
-        # Custom generator (scripts/generate_pacman.py) instead of the
-        # snake animation: Pac-Man travels the contribution grid eating
-        # each active day as a dot. Colors are three distinct hues
-        # (not shades of one color) chosen for legibility on OLED,
-        # AMOLED, LCD, laptop and mobile displays:
-        #   Low activity  -> amber/gold  (#FFC300)
-        #   Mid activity  -> cyan        (#00E5FF)
-        #   High activity -> magenta     (#FF2FB0)
-        run: python3 scripts/generate_pacman.py
+      - name: push SVGs to the output branch
+        uses: crazy-max/ghaction-github-pages@v3.1.0
+        with:
+          target_branch: output
+          build_dir: dist
         env:
-          GITHUB_USER_NAME: ${{ github.repository_owner }}
-          GITHUB_TOKEN: ${{ github.token }}
-          OUT_DIR: .
-
-      - name: Push generated Pac-Man graph to main
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "chore: update Pac-Man contribution animation [skip ci]"
-          file_pattern: pacman.svg pacman-light.svg
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
