@@ -1,4 +1,4 @@
-<div align="center">
+﻿<div align="center">
   <!-- Capsule Render Wave Banner -->
   <img src="https://capsule-render.vercel.app/api?type=waving&color=7B2CBF&height=200&section=header&text=Hiten%20Sharma&fontSize=48&fontColor=ffffff&animation=twinkle" width="100%" />
 
@@ -20,7 +20,7 @@
 
 ---
 
-## ðŸ‘¤ About Me
+## About Me
 
 <p align="left">
   <span style="font-size: 18px; line-height: 1.6;">
@@ -29,7 +29,7 @@
 </p>
 
 ---
-### ðŸ§° Tech Stack & Tools
+### Tech Stack & Tools
 
 <p align="left">
   <b>Languages & Web Tech:</b><br />
@@ -67,10 +67,10 @@
 
 ---
 
-### ðŸš€ Featured Projects
+### Featured Projects
 
 <details>
-<summary><b>ðŸ¤– RAG Document Agent â€“ Enterprise Q&A System</b></summary>
+<summary><b>RAG Document Agent – Enterprise Q&A System</b></summary>
 <br />
 An enterprise-grade Retrieval-Augmented Generation (RAG) backend built to ingest multi-page PDFs, perform semantic text chunking, and execute context-grounded Q&A with Google Gemini.
 
@@ -85,7 +85,7 @@ An enterprise-grade Retrieval-Augmented Generation (RAG) backend built to ingest
 </details>
 
 <details>
-<summary><b>ðŸ›¡ï¸ TrustGuard Pro â€“ Digital Forensics Suite</b></summary>
+<summary><b>TrustGuard Pro – Digital Forensics Suite</b></summary>
 <br />
 
 A digital forensics suite built with React and Firebase designed to detect AI-generated media (Deepfakes) and analyze metadata manipulation.
@@ -102,7 +102,7 @@ A digital forensics suite built with React and Firebase designed to detect AI-ge
 </details>
 
 <details>
-<summary><b>ðŸŽ¬ MyWay â€“ Movie & Music Availability Tracking App</b></summary>
+<summary><b>MyWay – Movie & Music Availability Tracking App</b></summary>
 <br />
 A sleek web application for movie searching, tracking streaming and music availability, and aggregating media metadata.
 
@@ -117,7 +117,7 @@ A sleek web application for movie searching, tracking streaming and music availa
 </details>
 
 <details>
-<summary><b>ðŸ‘¾ Pac-Man Contribution Graph â€“ Animated GitHub Activity Visualizer</b></summary>
+<summary><b>Pac-Man Contribution Graph – Animated GitHub Activity Visualizer</b></summary>
 <br />
 A GitHub Actions pipeline that turns the contribution calendar into an animated Pac-Man maze SVG, replacing the classic "snake" README animation.
 
@@ -133,7 +133,7 @@ A GitHub Actions pipeline that turns the contribution calendar into an animated 
 
 ---
 
-## ðŸ‘¾ My Contribution Graph
+## My Contribution Graph
 
 <p align="center">
   <picture>
